@@ -1,0 +1,10 @@
+[package]
+name = "wurstenstein-psp"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ab_glyph = { version = "0.2.32", default-features = false, features = ["libm"] }
+heapless = "0.9.3"
+libm = "0.2.16"
+psp = { path = "../../psp" }
