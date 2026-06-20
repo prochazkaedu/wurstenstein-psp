@@ -232,7 +232,6 @@ impl<'a> Font<'a> {
 		};
 
 		unsafe {
-			sys::sceGuTexFilter(TextureFilter::Nearest, TextureFilter::Nearest);
 			sys::sceGuTexMode(TexturePixelFormat::Psm8888, 0, 0, 0);
 			sys::sceGuTexImage(MipmapLevel::None, font.tex_w as i32, font.tex_h as i32, font.tex_w as i32, font.texture.as_ptr() as _);
 		}

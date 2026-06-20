@@ -167,9 +167,9 @@ unsafe fn psp_main_inner() {
 		{
 			let pos = ScePspFVector3 { x: 0.0, y: 0.0, z: -2.5 };
 			let rot = ScePspFVector3 {
-				x: val * 0.79 * (PI / 180.0),
-				y: val * 0.98 * (PI / 180.0),
-				z: val * 1.32 * (PI / 180.0),
+				x: val * 10.0 * 0.79 * (PI / 180.0),
+				y: val * 10.0 * 0.98 * (PI / 180.0),
+				z: val * 10.0 * 1.32 * (PI / 180.0),
 			};
 
 			sys::sceGumTranslate(&pos);
@@ -182,7 +182,7 @@ unsafe fn psp_main_inner() {
 		sys::sceGuDisable(GuState::Texture2D);
 		crate::util::background::draw(val);
 
-		crate::util::rectangle::colored(&[10.0, 10.0, 20.0, 20.0], &[255, 0, 0, 128]);
+		// crate::util::rectangle::colored(&[10.0, 10.0, 20.0, 20.0], &[255, 0, 0, 128]);
 
 		// setup texture
 
@@ -202,7 +202,7 @@ unsafe fn psp_main_inner() {
 		);
 
 		sys::sceGuEnable(GuState::Texture2D);
-		crate::util::rectangle::colored_and_textured(&[0.0, 0.0, 128.0, 128.0], &[255, 255, 255, 255], &[0, 0, 128, 128]);
+		// crate::util::rectangle::colored_and_textured(&[0.0, 0.0, 128.0, 128.0], &[255, 255, 255, 255], &[0, 0, 128, 128]);
 
 		font.draw_string("Wurstenstein 3D", 50, 240, 120, crate::util::font::HorizAlign::Center, &[255, 255, 255, 255]);
 
