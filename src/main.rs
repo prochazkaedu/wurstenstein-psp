@@ -2,6 +2,8 @@
 #![no_main]
 #![allow(unsafe_op_in_unsafe_fn)]
 
+mod app;
+
 mod assets;
 
 mod audio;
@@ -15,11 +17,12 @@ mod playfield;
 use core::{ptr, f32::consts::PI};
 use psp::Align16;
 use psp::sys::{
-	self, BlendFactor, BlendOp, ClearBuffer, DepthFunc, DisplayPixelFormat, FrontFaceDirection, GuContextType, GuPrimitive, GuState, GuSyncBehavior, GuSyncMode, GuTexWrapMode, MipmapLevel, ScePspFVector3, ShadingModel, TextureColorComponent, TextureEffect, TextureFilter, TexturePixelFormat, VertexType
+	self, BlendFactor, BlendOp, ClearBuffer, CtrlMode, DepthFunc, DisplayPixelFormat, FrontFaceDirection, GuContextType, GuPrimitive, GuState, GuSyncBehavior, GuSyncMode, GuTexWrapMode, MipmapLevel, ScePspFVector3, ShadingModel, TextureColorComponent, TextureEffect, TextureFilter, TexturePixelFormat, VertexType
 };
 use psp::vram_alloc::get_vram_allocator;
 use psp::{BUF_WIDTH, SCREEN_WIDTH, SCREEN_HEIGHT};
 
+use crate::app::App;
 use crate::util::model::Transform;
 
 psp::module!("sample_cube", 1, 1);
@@ -106,16 +109,6 @@ unsafe fn psp_main_inner() {
 	// compile-time error since fbp0, fbp1 and zbp are used later on
 	//allocator.free_all();
 
-	let files = ::assets::Assets::parse_from_data(include_bytes!("../assets.bin")).unwrap();
-
-	let mut assets = crate::assets::Assets::init(files.models, files.textures);
-	let mut audio = crate::audio::Audio::init(files.music, files.sounds);
-
-	let font = include_bytes!("../notosansmono-ascii.ttf");
-
-	assets.font.register_scale(20, &allocator);
-	assets.font.register_scale(50, &allocator);
-
 	sys::sceGumLoadIdentity();
 
 	sys::sceGuInit();
@@ -154,13 +147,22 @@ unsafe fn psp_main_inner() {
 
 	sys::sceGuDisplay(true);
 
+	sys::sceCtrlSetSamplingCycle(0);
+	sys::sceCtrlSetSamplingMode(CtrlMode::Analog);
+
+	let mut app = App::init(&allocator);
+
+	loop {
+		sys::sceGuStart(GuContextType::Direct, &raw mut LIST.0 as *mut [u32; 0x40000] as *mut _);
+
+		app.main_loop();
+	}
+
 	// run sample
 
 	let mut val = 0.0;
 
 	loop {
-		sys::sceGuStart(GuContextType::Direct, &raw mut LIST.0 as *mut [u32; 0x40000] as *mut _);
-
 		// clear screen
 		sys::sceGuClearColor(0xff000000);
 		sys::sceGuClearDepth(0);
@@ -220,14 +222,10 @@ unsafe fn psp_main_inner() {
 		sys::sceGumTranslate(&pos);
 		sys::sceGumRotateY(val);
 
-		assets.player.draw(&Transform::origin());
-
 		sys::sceGuDisable(GuState::DepthTest);
 		sys::sceGuFrontFace(FrontFaceDirection::Clockwise);
 		sys::sceGuEnable(GuState::Texture2D);
 		// crate::util::rectangle::colored_and_textured(&[0.0, 0.0, 128.0, 128.0], &[255, 255, 255, 255], &[0, 0, 128, 128]);
-
-		assets.font.draw_string("Wurstenstein 3D", 50, 240, 120, crate::util::font::HorizAlign::Center, &[255, 255, 255, 255]);
 
 		sys::sceGuFinish();
 		sys::sceGuSync(GuSyncMode::Finish, GuSyncBehavior::Wait);

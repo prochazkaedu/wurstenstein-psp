@@ -149,8 +149,6 @@ impl RenderedFont {
 pub struct Font<'a> {
 	fonts: heapless::Vec<RenderedFont, 3>,
 	font: FontRef<'a>,
-	screen_w: u32,
-	screen_h: u32,
 }
 
 pub enum HorizAlign {
@@ -166,18 +164,11 @@ impl<'a> Font<'a> {
 		Self {
 			fonts: heapless::Vec::new(),
 			font,
-			screen_w: 0,
-			screen_h: 0,
 		}
 	}
 
 	pub fn register_scale(&mut self, scale: u32, alloc: &SimpleVramAllocator) {
 		self.fonts.push(RenderedFont::new(&self.font, scale, alloc));
-	}
-
-	pub fn update_screen_dimensions(&mut self, w: u32, h: u32) {
-		self.screen_w = w;
-		self.screen_h = h;
 	}
 
 	pub fn draw_string(&self, string: &str, scale: u32, x: i32, y: i32, align: HorizAlign, color: &[u8; 4]) -> i32 {

@@ -70,13 +70,13 @@ pub enum SoundRequest {
 }
 
 pub enum AudioRequest {
-	PlayMusic { kind: MusicRequest },
 	PlaySound { kind: SoundRequest, position: Option<Vector3>, radius: f32 },
 	SetPosition { position: Vector3, rotation: f32 },
 }
 
 pub struct Audio {
-	tx: Producer<'static, AudioRequest>
+	tx: Producer<'static, AudioRequest>,
+	music_tx: Producer<'static, MusicRequest>
 }
 
 struct AudioData {
@@ -94,45 +94,34 @@ unsafe extern "C" fn audio_thread_entry(args: usize, data: *mut c_void) -> i32 {
 
 	let mut play_music = false;
 
-	play_music = true;
-
 	let mut player = ModPlayer::<4>::new(&data.space_debris, 44100).unwrap();
-	player.set_rules(Some(INGAME_RULES));
 
 	loop {
-		// while let Some(request) = data.music_rx.dequeue() {
-		// 	match request {
-		// 		MusicRequest::Stop => {
-		// 			play_music = false;
-		// 		},
-		// 		MusicRequest::Title => {
-		// 			play_music = true;
-		// 			unsafe {
-		// 				InitMOD(data.space_debris.as_ptr(), 44100);
-		// 				UpdateMODRules(TITLE_RULES);
-		// 			}
-		// 		},
-		// 		MusicRequest::InGame => {
-		// 			play_music = true;
-		// 			unsafe {
-		// 				InitMOD(data.space_debris.as_ptr(), 44100);
-		// 				UpdateMODRules(INGAME_RULES);
-		// 			}
-		// 		},
-		// 		MusicRequest::Death => {
-		// 			play_music = true;
-		// 			unsafe {
-		// 				InitMOD(data.humntrgt.as_ptr(), 44100);
-		// 			}
-		// 		},
-		// 		MusicRequest::Win => {
-		// 			play_music = true;
-		// 			unsafe {
-		// 				InitMOD(data.brewery.as_ptr(), 44100);
-		// 			}
-		// 		},
-		// 	}
-		// }
+			while let Some(request) = data.music_rx.dequeue() {
+				match request {
+					MusicRequest::Stop => {
+						play_music = false;
+					},
+					MusicRequest::Title => {
+						play_music = true;
+						player = ModPlayer::<4>::new(&data.space_debris, 44100).unwrap();
+						player.set_rules(Some(TITLE_RULES));
+					},
+					MusicRequest::InGame => {
+						play_music = true;
+						player = ModPlayer::<4>::new(&data.space_debris, 44100).unwrap();
+						player.set_rules(Some(INGAME_RULES));
+					},
+					MusicRequest::Death => {
+						play_music = true;
+						player = ModPlayer::<4>::new(&data.humntrgt, 44100).unwrap();
+					},
+					MusicRequest::Win => {
+						play_music = true;
+						player = ModPlayer::<4>::new(&data.brewery, 44100).unwrap();
+					},
+				}
+			}
 
 		// let out_frames = oddio::frame_stereo(data);
 		// oddio::run(&mut scene, 44100, out_frames);
@@ -141,9 +130,9 @@ unsafe extern "C" fn audio_thread_entry(args: usize, data: *mut c_void) -> i32 {
 
 		if play_music {
 			player.render(&mut buffer);
+		} else {
+			buffer.fill(0);
 		}
-
-		// buffer.fill(0);
 
 		// for (sample, out) in buf.iter().zip(data.iter_mut()) {
 		// 	*out = (*out + *sample as f32 / 32768.0 / 2.0) / 2.0;
@@ -275,12 +264,13 @@ impl Audio {
 		// });
 
 		Self {
+			music_tx,
 			tx
 		}
 	}
 
 	pub fn play_music(&mut self, kind: MusicRequest) {
-		let _ = self.tx.enqueue(AudioRequest::PlayMusic { kind });
+		let _ = self.music_tx.enqueue(kind);
 	}
 
 	pub fn play_sound(&mut self, kind: SoundRequest, position: Option<Vector3>, radius: f32) {
