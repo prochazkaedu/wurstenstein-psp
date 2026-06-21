@@ -304,11 +304,11 @@ impl App {
 			self.scene.camera.mouse_interact(stick_dx * 600.0 * dt, stick_dy * 600.0 * dt);
 
 			if pad_data.buttons.contains(CtrlButtons::LEFT) {
-				self.scene.camera.scroll_wheel_interact(-5.0);
+				self.scene.camera.scroll_wheel_interact(-50.0 * dt);
 			}
 
 			if pad_data.buttons.contains(CtrlButtons::RIGHT) {
-				self.scene.camera.scroll_wheel_interact(5.0);
+				self.scene.camera.scroll_wheel_interact(50.0 * dt);
 			}
 
 			let latched_buttons = pad_data.buttons.symmetric_difference(self.last_buttons).intersection(pad_data.buttons);
@@ -408,7 +408,7 @@ impl App {
 
 			sys::sceGumMatrixMode(MatrixMode::Projection);
 			sys::sceGumLoadIdentity();
-			sys::sceGumPerspective(45.0, 16.0 / 9.0, 0.5, 1000.0);
+			sys::sceGumPerspective(self.scene.camera.get_zoom(), 16.0 / 9.0, 0.5, 1000.0);
 
 			let view_mtx = unsafe { core::mem::transmute(self.scene.camera.get_view_matrix()) };
 			sys::sceGumMatrixMode(MatrixMode::View);
