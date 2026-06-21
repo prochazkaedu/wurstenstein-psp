@@ -115,7 +115,11 @@ impl Model {
 		unsafe {
 			if let Some(tex) = &self.tex {
 				sys::sceGuTexMode(TexturePixelFormat::Psm8888, 0, 0, 0);
-				// assert!(tex.tex.bytes.as_ptr() as u32 & 0xF == 0);
+				let (min, mag) = match tex.linear_filter {
+					true => (TextureFilter::Linear, TextureFilter::Linear),
+					false => (TextureFilter::Nearest, TextureFilter::Nearest)
+				};
+				sys::sceGuTexFilter(min, mag);
 				sys::sceGuTexImage(MipmapLevel::None, tex.width as i32, tex.height as i32, tex.width as i32, tex.texture[tex.start_offset..].as_ptr() as *const _);
 			}
 
