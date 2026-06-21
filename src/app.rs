@@ -447,11 +447,12 @@ impl App {
 			sys::sceGuMaterial(LightComponent::SPECULAR, full);
 			// gl::Materialfv(gl::FRONT, gl::SHININESS, shininess.as_ptr());
 
+			sys::sceGuAmbient(ambient);
+
 			sys::sceGuLight(0, LightType::Directional, LightComponent::AMBIENT | LightComponent::DIFFUSE | LightComponent::SPECULAR, &direction);
 			sys::sceGuLightColor(0, LightComponent::AMBIENT, ambient);
 			sys::sceGuLightColor(0, LightComponent::DIFFUSE, diffuse);
 			sys::sceGuLightColor(0, LightComponent::SPECULAR, specular);
-			sys::sceGuAmbient(ambient);
 			sys::sceGuLightAtt(0, 1.0, 0.0, 0.0);
 
 			if self.params.flashlight_enabled {
@@ -460,18 +461,16 @@ impl App {
 
 				let rotated = Vector2::new(0.0, 1.0).rotate(core::f32::consts::PI - transform.rotation.x);
 
-				// sys::sceGuEnable(GuState::Light1);
-				//
-				// let spot_dir = [rotated.x, 0.0, rotated.y, 1.0];
-				// let position = [transform.position.x, transform.position.y, transform.position.z, 1.0];
-				//
-				// gl::Lightfv(gl::LIGHT1, gl::POSITION, position.as_ptr());
-				// gl::Lightfv(gl::LIGHT1, gl::SPOT_DIRECTION, spot_dir.as_ptr());
-				// gl::Lightf(gl::LIGHT1, gl::SPOT_CUTOFF, 1.5);
-				// gl::Lightf(gl::LIGHT1, gl::SPOT_EXPONENT, 0.0);
-				// gl::Lightfv(gl::LIGHT1, gl::AMBIENT, none.as_ptr());
-				// gl::Lightfv(gl::LIGHT1, gl::DIFFUSE, full.as_ptr());
-				// gl::Lightfv(gl::LIGHT1, gl::SPECULAR, full.as_ptr());
+				let position = ScePspFVector3 { x: transform.position.x, y: transform.position.y, z: transform.position.z };
+				let direction = ScePspFVector3 { x: -rotated.x, y: 0.0, z: -rotated.y };
+
+				sys::sceGuEnable(GuState::Light1);
+				sys::sceGuLight(1, LightType::Spotlight, LightComponent::AMBIENT | LightComponent::DIFFUSE | LightComponent::SPECULAR, &position);
+				sys::sceGuLightSpot(1, &direction, 0.0, 0.999);
+				sys::sceGuLightColor(1, LightComponent::AMBIENT, none);
+				sys::sceGuLightColor(1, LightComponent::DIFFUSE, full);
+				sys::sceGuLightColor(1, LightComponent::SPECULAR, full);
+				sys::sceGuLightAtt(1, 1.0, 0.0, 0.0);
 			}
 		}
 	}
