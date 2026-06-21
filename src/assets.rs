@@ -7,13 +7,13 @@ use parry2d::{math::{Pose, Vec2}, shape::Cuboid};
 
 fn get_bounding_box_from_model(model: &assets::Model, scale: f32) -> BoundingBox {
 	// TODO - unhardcode 8
-	let min_x = model.vertices.chunks(8).map(|pos| pos[0]).min_by(|a, b| a.partial_cmp(b).unwrap()).unwrap() * scale;
-	let min_y = model.vertices.chunks(8).map(|pos| pos[1]).min_by(|a, b| a.partial_cmp(b).unwrap()).unwrap() * scale;
-	let min_z = model.vertices.chunks(8).map(|pos| pos[2]).min_by(|a, b| a.partial_cmp(b).unwrap()).unwrap() * scale;
+	let min_x = model.vertices.chunks(8).map(|pos| pos[5]).min_by(|a, b| a.partial_cmp(b).unwrap()).unwrap() * scale;
+	let min_y = model.vertices.chunks(8).map(|pos| pos[6]).min_by(|a, b| a.partial_cmp(b).unwrap()).unwrap() * scale;
+	let min_z = model.vertices.chunks(8).map(|pos| pos[7]).min_by(|a, b| a.partial_cmp(b).unwrap()).unwrap() * scale;
 
-	let max_x = model.vertices.chunks(8).map(|pos| pos[0]).max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap() * scale;
-	let max_y = model.vertices.chunks(8).map(|pos| pos[1]).max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap() * scale;
-	let max_z = model.vertices.chunks(8).map(|pos| pos[2]).max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap() * scale;
+	let max_x = model.vertices.chunks(8).map(|pos| pos[5]).max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap() * scale;
+	let max_y = model.vertices.chunks(8).map(|pos| pos[6]).max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap() * scale;
+	let max_z = model.vertices.chunks(8).map(|pos| pos[7]).max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap() * scale;
 
 	BoundingBox {
 		min: (min_x, min_y, min_z),
