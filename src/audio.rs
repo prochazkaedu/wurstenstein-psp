@@ -156,7 +156,7 @@ unsafe extern "C" fn audio_thread_entry(args: usize, data: *mut c_void) -> i32 {
 		oddio::run(&mut data.scene, 44100, out_frames);
 
 		for (sample, out) in oddio_buffer.iter().zip(buffer.iter_mut()) {
-			*out = (*out + (*sample * 32768.0 / 2.0) as i16) / 2;
+			*out = (*out / 2 + (*sample * 32768.0 / 2.0) as i16);
 		}
 
 		sys::sceAudioOutputPannedBlocking(data.audio_channel, AUDIO_VOLUME_MAX as i32, AUDIO_VOLUME_MAX as i32, buffer.as_ptr() as _);
