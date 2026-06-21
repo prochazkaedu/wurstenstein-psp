@@ -28,6 +28,7 @@ pub struct App {
 	perf: Perf,
 	scene: Scene,
 	params: Parameters,
+	last_buttons: CtrlButtons
 }
 
 #[derive(PartialEq)]
@@ -140,6 +141,7 @@ impl App {
 			scene,
 			perf,
 			params,
+			last_buttons: CtrlButtons::empty()
 		};
 
 		app
@@ -265,11 +267,13 @@ impl App {
 				self.scene.camera.scroll_wheel_interact(5.0);
 			}
 
+			let latched_buttons = pad_data.buttons.symmetric_difference(self.last_buttons).intersection(pad_data.buttons);
+
 			match self.scene.state {
 				SceneState::InGame { .. } => {
 					self.params.flashlight_enabled = pad_data.buttons.contains(CtrlButtons::LTRIGGER);
 
-					if pad_data.buttons.contains(CtrlButtons::RTRIGGER) {
+					if latched_buttons.contains(CtrlButtons::RTRIGGER) {
 						self.fire_bullet_from_player();
 					}
 
@@ -289,16 +293,16 @@ impl App {
 					}
 				},
 				SceneState::Dead | SceneState::Title | SceneState::YoureWinner { .. } => {
-					if pad_data.buttons.contains(CtrlButtons::RTRIGGER) {
+					if latched_buttons.contains(CtrlButtons::RTRIGGER) {
 						self.respawn();
 					}
 				}
 			}
 
+			self.last_buttons = pad_data.buttons;
+
 			// TODO - POV camera toggle
 		}
-
-
 
 		self.update_state();
 
