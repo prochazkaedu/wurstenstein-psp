@@ -42,19 +42,7 @@ fn parse_texture(bytes: &[u8]) -> Texture {
 
 	let width = image.width() as usize;
 	let height = image.height() as usize;
-	let mut bytes = image.flipv().into_rgba8().into_raw();
-
-	for i in (0..bytes.len()).step_by(4) {
-		let a = bytes[0 + i];
-		let r = bytes[1 + i];
-		let g = bytes[2 + i];
-		let b = bytes[3 + i];
-
-		bytes[0 + i] = r;
-		bytes[1 + i] = g;
-		bytes[2 + i] = b;
-		bytes[3 + i] = a;
-	}
+	let bytes = image.flipv().into_rgba8().into_raw();
 
 	assert_eq!(width * height * 4, bytes.len());
 

@@ -4,8 +4,14 @@ use psp::sys::{
 	self, BlendFactor, BlendOp, ClearBuffer, DepthFunc, DisplayPixelFormat, FrontFaceDirection, GuContextType, GuPrimitive, GuState, GuSyncBehavior, GuSyncMode, GuTexWrapMode, MipmapLevel, ScePspFVector3, ShadingModel, TextureColorComponent, TextureEffect, TextureFilter, TexturePixelFormat, VertexType
 };
 
+extern crate alloc;
+use alloc::vec::Vec;
+
 struct ModelTexture {
-	tex: assets::Texture,
+	texture: Vec<u8>,
+	start_offset: usize,
+	width: usize,
+	height: usize,
 	linear_filter: bool
 }
 
@@ -62,7 +68,28 @@ impl Model {
 	}
 
 	pub fn add_texture(&mut self, tex: assets::Texture, linear_filter: bool) {
-		self.tex = Some(ModelTexture { tex, linear_filter });
+		let mut texture = Vec::with_capacity(tex.width * tex.height * 4 + 16);
+
+		let start_offset = match texture.as_ptr() as usize & 0xF {
+			0 => 0,
+			x => 0x10 - x
+		};
+
+		for x in 0..start_offset {
+			texture.push(0);
+		}
+
+		assert_eq!((texture.as_ptr() as usize + texture.len()) & 0xF, 0);
+
+		texture.extend_from_slice(&tex.bytes);
+
+		self.tex = Some(ModelTexture {
+			texture,
+			start_offset,
+			width: tex.width,
+			height: tex.height,
+			linear_filter
+		});
 	}
 
 	pub fn with_mesh(mut self, mesh: assets::Model) -> Self {
@@ -89,7 +116,7 @@ impl Model {
 			if let Some(tex) = &self.tex {
 				sys::sceGuTexMode(TexturePixelFormat::Psm8888, 0, 0, 0);
 				// assert!(tex.tex.bytes.as_ptr() as u32 & 0xF == 0);
-				sys::sceGuTexImage(MipmapLevel::None, tex.tex.width as i32, tex.tex.height as i32, tex.tex.width as i32, tex.tex.bytes.as_ptr() as *const _);
+				sys::sceGuTexImage(MipmapLevel::None, tex.width as i32, tex.height as i32, tex.width as i32, tex.texture[tex.start_offset..].as_ptr() as *const _);
 			}
 
 			if let Some(vtx) = &self.vtx {
