@@ -3,6 +3,7 @@ pub mod background;
 pub mod font;
 pub mod model;
 pub mod rectangle;
+pub mod transparent;
 
 pub fn allocate_display_list<T: Sized>(count: usize) -> &'static mut [T] {
 	unsafe {
