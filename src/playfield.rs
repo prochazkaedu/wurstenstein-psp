@@ -69,17 +69,17 @@ impl<'a, T: PlayfieldPiece> Playfield<'a, T> {
 
 					for inc_z in 0..=1 {
 						for inc_x in 0..=1 {
-							vertices.push((x + inc_x) as f32 * self.scale);
-							vertices.push(0.0);
-							vertices.push((z + inc_z) as f32 * self.scale);
+							vertices.push(if inc_x != 0 { tx1 } else { tx2 });
+							vertices.push(if inc_z == 0 { ty1 } else { ty2 });
 
 							// Normals will always point up
 							vertices.push(0.0);
 							vertices.push(1.0);
 							vertices.push(0.0);
 
-							vertices.push(if inc_x != 0 { tx1 } else { tx2 });
-							vertices.push(if inc_z == 0 { ty1 } else { ty2 });
+							vertices.push((x + inc_x) as f32 * self.scale);
+							vertices.push(0.0);
+							vertices.push((z + inc_z) as f32 * self.scale);
 						}
 					}
 
@@ -106,17 +106,17 @@ impl<'a, T: PlayfieldPiece> Playfield<'a, T> {
 
 					for inc_z in 0..=1 {
 						for inc_x in 0..=1 {
-							vertices.push((x + inc_x) as f32 * self.scale);
-							vertices.push(-self.height);
-							vertices.push((z + inc_z) as f32 * self.scale);
+							vertices.push(if inc_x == 0 { tx1 } else { tx2 });
+							vertices.push(if inc_z == 0 { ty1 } else { ty2 });
 
 							// Normals will always point down
 							vertices.push(0.0);
 							vertices.push(-1.0);
 							vertices.push(0.0);
 
-							vertices.push(if inc_x == 0 { tx1 } else { tx2 });
-							vertices.push(if inc_z == 0 { ty1 } else { ty2 });
+							vertices.push((x + inc_x) as f32 * self.scale);
+							vertices.push(-self.height);
+							vertices.push((z + inc_z) as f32 * self.scale);
 						}
 					}
 
@@ -165,14 +165,14 @@ impl<'a, T: PlayfieldPiece> Playfield<'a, T> {
 
 						for inc_y in 0..=1 {
 							for inc_xz in 0..=1 {
-								vertices.push((base[0] + inc_xz * diff[0]) as f32 * self.scale);
-								vertices.push(if inc_y > 0 { 0.0 } else { -self.height });
-								vertices.push((base[1] + inc_xz * diff[1]) as f32 * self.scale);
+								vertices.push(if (inc_xz == 0) == reverse { tx1 } else { tx2 });
+								vertices.push(if inc_y == 0 { ty1 } else { ty2 });
 
 								vertices.extend_from_slice(&normal);
 
-								vertices.push(if (inc_xz == 0) == reverse { tx1 } else { tx2 });
-								vertices.push(if inc_y == 0 { ty1 } else { ty2 });
+								vertices.push((base[0] + inc_xz * diff[0]) as f32 * self.scale);
+								vertices.push(if inc_y > 0 { 0.0 } else { -self.height });
+								vertices.push((base[1] + inc_xz * diff[1]) as f32 * self.scale);
 							}
 						}
 
