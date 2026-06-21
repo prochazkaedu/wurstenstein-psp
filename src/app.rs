@@ -198,9 +198,6 @@ impl App {
 		let green = &[0, 255, 0, 255];
 		let blue = &[128, 128, 255, 255];
 
-		let tick = heapless::format!(64; "FPS: {:.1}", self.perf.fps).unwrap();
-		self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 10, 30, HorizAlign::Left, white);
-
 		match self.scene.state {
 			SceneState::Title => {
 				self.assets.font.draw_string("Wurstenstein 3D", FontSize::Title as u32, w as i32 / 2, h as i32 / 2 - 15, HorizAlign::Center, white);
@@ -258,6 +255,9 @@ impl App {
 				self.assets.font.draw_string("Shoot to respawn", FontSize::SubTitle as u32, w as i32 / 2, h as i32 / 2 + 40, HorizAlign::Center, white);
 			}
 		}
+
+		let tick = heapless::format!(64; "FPS: {:.1}", self.perf.fps).unwrap();
+		self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 10, 30, HorizAlign::Left, white);
 	}
 
 	fn update_perf_data(&mut self, dt: f32) {
