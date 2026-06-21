@@ -42,17 +42,17 @@ pub struct Music {
 
 #[derive(wincode::SchemaWrite, wincode::SchemaRead)]
 pub struct Sounds {
-	pub player_jump: Vec<u8>,
-	pub player_explosion: Vec<u8>,
-	pub player_death: Vec<u8>,
-	pub player_shoot: Vec<u8>,
-	pub enemy_hit: Vec<u8>,
-	pub enemy_death: Vec<u8>,
-	pub enemy_explosion: Vec<u8>,
-	pub enemy_shoot: Vec<u8>,
-	pub powerup_hp_pickup: Vec<u8>,
-	pub powerup_energy_pickup: Vec<u8>,
-	pub powerup_speed_pickup: Vec<u8>,
+	pub player_jump: Vec<f32>,
+	pub player_explosion: Vec<f32>,
+	pub player_death: Vec<f32>,
+	pub player_shoot: Vec<f32>,
+	pub enemy_hit: Vec<f32>,
+	pub enemy_death: Vec<f32>,
+	pub enemy_explosion: Vec<f32>,
+	pub enemy_shoot: Vec<f32>,
+	pub powerup_hp_pickup: Vec<f32>,
+	pub powerup_energy_pickup: Vec<f32>,
+	pub powerup_speed_pickup: Vec<f32>,
 }
 
 #[derive(wincode::SchemaWrite, wincode::SchemaRead)]

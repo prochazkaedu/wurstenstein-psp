@@ -65,6 +65,11 @@ fn parse_texture(bytes: &[u8]) -> Texture {
 	}
 }
 
+fn parse_audio(bytes: &[u8]) -> Vec<f32> {
+	let reader = hound::WavReader::new(Cursor::new(bytes)).unwrap();
+	reader.into_samples::<i16>().map(|x| x.unwrap() as f32 / 32768.0).collect::<Vec<_>>()
+}
+
 fn main() {
 	println!("cargo::rerun-if-changed=files");
 
@@ -93,17 +98,17 @@ fn main() {
 			brewery: include_bytes!("./files/music/brewery.mod").to_vec(),
 		},
 		sounds: Sounds {
-			player_jump: include_bytes!("./files/sounds/sfx_movement_jump14.wav").to_vec(),
-			player_explosion: include_bytes!("./files/sounds/sfx_exp_medium1.wav").to_vec(),
-			player_death: include_bytes!("./files/sounds/sfx_deathscream_human11.wav").to_vec(),
-			player_shoot: include_bytes!("./files/sounds/sfx_weapon_shotgun3.wav").to_vec(),
-			enemy_hit: include_bytes!("./files/sounds/sfx_weapon_shotgun2.wav").to_vec(),
-			enemy_explosion: include_bytes!("./files/sounds/sfx_exp_medium2.wav").to_vec(),
-			enemy_death: include_bytes!("./files/sounds/sfx_deathscream_alien4.wav").to_vec(),
-			enemy_shoot: include_bytes!("./files/sounds/sfx_weapon_shotgun2.wav").to_vec(),
-			powerup_hp_pickup: include_bytes!("./files/sounds/sfx_sounds_powerup6.wav").to_vec(),
-			powerup_energy_pickup: include_bytes!("./files/sounds/sfx_sounds_powerup9.wav").to_vec(),
-			powerup_speed_pickup: include_bytes!("./files/sounds/sfx_sounds_powerup16.wav").to_vec(),
+			player_jump: parse_audio(include_bytes!("./files/sounds/sfx_movement_jump14.wav")),
+			player_explosion: parse_audio(include_bytes!("./files/sounds/sfx_exp_medium1.wav")),
+			player_death: parse_audio(include_bytes!("./files/sounds/sfx_deathscream_human11.wav")),
+			player_shoot: parse_audio(include_bytes!("./files/sounds/sfx_weapon_shotgun3.wav")),
+			enemy_hit: parse_audio(include_bytes!("./files/sounds/sfx_weapon_shotgun2.wav")),
+			enemy_explosion: parse_audio(include_bytes!("./files/sounds/sfx_exp_medium2.wav")),
+			enemy_death: parse_audio(include_bytes!("./files/sounds/sfx_deathscream_alien4.wav")),
+			enemy_shoot: parse_audio(include_bytes!("./files/sounds/sfx_weapon_shotgun2.wav")),
+			powerup_hp_pickup: parse_audio(include_bytes!("./files/sounds/sfx_sounds_powerup6.wav")),
+			powerup_energy_pickup: parse_audio(include_bytes!("./files/sounds/sfx_sounds_powerup9.wav")),
+			powerup_speed_pickup: parse_audio(include_bytes!("./files/sounds/sfx_sounds_powerup16.wav")),
 		}
 	};
 
