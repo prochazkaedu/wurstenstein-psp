@@ -252,7 +252,10 @@ impl App {
 		unsafe {
 			sys::sceCtrlReadBufferPositive(pad_data, 1);
 
-			self.scene.camera.mouse_interact((pad_data.lx as f32) / 128.0 - 1.0, (pad_data.ly as f32) / 128.0 - 1.0);
+			let stick_dx = (pad_data.lx as f32) / 128.0 - 1.0;
+			let stick_dy = (pad_data.ly as f32) / 128.0 - 1.0;
+
+			self.scene.camera.mouse_interact(stick_dx * 10.0, stick_dy * 10.0);
 
 			if pad_data.buttons.contains(CtrlButtons::LEFT) {
 				self.scene.camera.scroll_wheel_interact(-5.0);
@@ -351,21 +354,20 @@ impl App {
 	fn init_3d(&self) {
 		unsafe {
 			sys::sceGuEnable(GuState::DepthTest);
-			sys::sceGuEnable(GuState::Lighting);
+			// sys::sceGuEnable(GuState::Lighting);
+			sys::sceGuEnable(GuState::CullFace);
+			sys::sceGuFrontFace(FrontFaceDirection::CounterClockwise);
 
 			sys::sceGumMatrixMode(MatrixMode::Projection);
 			sys::sceGumLoadIdentity();
-
-			let fov: f32 = 45.0_f32.to_radians();
-			let aspect: f32 = SCREEN_WIDTH as f32 / SCREEN_HEIGHT as f32;
-			let near: f32 = 0.1;
-			let far: f32 = 100.0;
-
-			sys::sceGumPerspective(fov, aspect, near, far);
+			sys::sceGumPerspective(45.0, 16.0 / 9.0, 0.5, 1000.0);
 
 			let view_mtx = unsafe { core::mem::transmute(self.scene.camera.get_view_matrix()) };
 			sys::sceGumMatrixMode(MatrixMode::View);
 			sys::sceGumLoadMatrix(&view_mtx);
+
+			sys::sceGumMatrixMode(sys::MatrixMode::Model);
+			sys::sceGumLoadIdentity();
 
 			sys::sceGuEnable(GuState::Light0);
 			sys::sceGuDisable(GuState::Light1);
@@ -416,11 +418,6 @@ impl App {
 
 	fn init_drawing(&self) {
 		unsafe {
-			sys::sceGuEnable(GuState::CullFace);
-			sys::sceGuFrontFace(FrontFaceDirection::CounterClockwise);
-
-			sys::sceGuEnable(GuState::DepthTest);
-
 			sys::sceGuClearColor(0xff000000);
 			sys::sceGuClearDepth(0);
 			sys::sceGuClear(ClearBuffer::COLOR_BUFFER_BIT | ClearBuffer::DEPTH_BUFFER_BIT);
@@ -457,15 +454,15 @@ impl App {
 
 				if !self.params.invincible {
 					if let Some(idx) = collision::check_with_enemies(&self.scene.player, &self.scene.enemies) && let Some(damage) = self.scene.enemies.collide_with_player(idx) {
-						if self.scene.player.decrease_hp(damage) {
-							self.audio.play_sound(SoundRequest::EnemyHit, None, 1.0);
-						}
+						// if self.scene.player.decrease_hp(damage) {
+						// 	self.audio.play_sound(SoundRequest::EnemyHit, None, 1.0);
+						// }
 					}
 
 					for bullet_idx in collision::check_player_with_bullet(&self.scene.player, &self.scene.bullets) {
-						if self.scene.player.decrease_hp(2) {
-							self.audio.play_sound(SoundRequest::EnemyHit, None, 1.0);
-						}
+						// if self.scene.player.decrease_hp(2) {
+						// 	self.audio.play_sound(SoundRequest::EnemyHit, None, 1.0);
+						// }
 						self.scene.bullets.despawn_bullet(bullet_idx);
 					}
 				}

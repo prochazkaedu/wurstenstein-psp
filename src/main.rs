@@ -164,44 +164,44 @@ unsafe fn psp_main_inner() {
 
 	loop {
 		// clear screen
-		sys::sceGuClearColor(0xff000000);
-		sys::sceGuClearDepth(0);
-		sys::sceGuClear(ClearBuffer::COLOR_BUFFER_BIT | ClearBuffer::DEPTH_BUFFER_BIT);
+		// sys::sceGuClearColor(0xff000000);
+		// sys::sceGuClearDepth(0);
+		// sys::sceGuClear(ClearBuffer::COLOR_BUFFER_BIT | ClearBuffer::DEPTH_BUFFER_BIT);
 
 		// setup matrices for cube
 
-		sys::sceGumMatrixMode(sys::MatrixMode::Projection);
-		sys::sceGumLoadIdentity();
-		sys::sceGumPerspective(75.0, 16.0 / 9.0, 0.5, 1000.0);
+		// sys::sceGumMatrixMode(sys::MatrixMode::Projection);
+		// sys::sceGumLoadIdentity();
+		// sys::sceGumPerspective(75.0, 16.0 / 9.0, 0.5, 1000.0);
+		//
+		// sys::sceGumMatrixMode(sys::MatrixMode::View);
+		// sys::sceGumLoadIdentity();
+		//
+		// sys::sceGumMatrixMode(sys::MatrixMode::Model);
+		// sys::sceGumLoadIdentity();
 
-		sys::sceGumMatrixMode(sys::MatrixMode::View);
-		sys::sceGumLoadIdentity();
-
-		sys::sceGumMatrixMode(sys::MatrixMode::Model);
-		sys::sceGumLoadIdentity();
-
-		let pos = ScePspFVector3 { x: 0.0, y: 0.0, z: -2.5 };
-		sys::sceGumTranslate(&pos);
-
-		let rot = ScePspFVector3 {
-			x: val * 10.0 * 0.79 * (PI / 180.0),
-			y: val * 10.0 * 0.98 * (PI / 180.0),
-			z: val * 10.0 * 1.32 * (PI / 180.0),
-		};
-		sys::sceGumRotateXYZ(&rot);
-
-		sys::sceGuDisable(GuState::DepthTest);
-		sys::sceGuEnable(GuState::Blend);
-
-		sys::sceGuDisable(GuState::Texture2D);
-		crate::util::background::draw(val);
+		// let pos = ScePspFVector3 { x: 0.0, y: 0.0, z: -2.5 };
+		// sys::sceGumTranslate(&pos);
+		//
+		// let rot = ScePspFVector3 {
+		// 	x: val * 10.0 * 0.79 * (PI / 180.0),
+		// 	y: val * 10.0 * 0.98 * (PI / 180.0),
+		// 	z: val * 10.0 * 1.32 * (PI / 180.0),
+		// };
+		// sys::sceGumRotateXYZ(&rot);
+		//
+		// sys::sceGuDisable(GuState::DepthTest);
+		// sys::sceGuEnable(GuState::Blend);
+		//
+		// sys::sceGuDisable(GuState::Texture2D);
+		// crate::util::background::draw(val);
 
 		// crate::util::rectangle::colored(&[10.0, 10.0, 20.0, 20.0], &[255, 0, 0, 128]);
 
 		// setup texture
 
-		sys::sceGuTexMode(TexturePixelFormat::Psm8888, 0, 0, 0);
-		sys::sceGuTexImage(MipmapLevel::None, 128, 128, 128, &FERRIS as *const _ as *const _);
+		// sys::sceGuTexMode(TexturePixelFormat::Psm8888, 0, 0, 0);
+		// sys::sceGuTexImage(MipmapLevel::None, 128, 128, 128, &FERRIS as *const _ as *const _);
 
 		// draw cube
 
@@ -214,17 +214,17 @@ unsafe fn psp_main_inner() {
 		// 	core::ptr::null(),
 		// 	&VERTICES as *const Align16<_> as _,
 		// );
-		sys::sceGuEnable(GuState::DepthTest);
+		// sys::sceGuEnable(GuState::DepthTest);
 
-		sys::sceGuFrontFace(FrontFaceDirection::CounterClockwise);
-		sys::sceGumLoadIdentity();
-		let pos = ScePspFVector3 { x: 0.0, y: -0.5, z: -3.0 };
-		sys::sceGumTranslate(&pos);
-		sys::sceGumRotateY(val);
+		// sys::sceGuFrontFace(FrontFaceDirection::CounterClockwise);
+		// sys::sceGumLoadIdentity();
+		// let pos = ScePspFVector3 { x: 0.0, y: -0.5, z: -3.0 };
+		// sys::sceGumTranslate(&pos);
+		// sys::sceGumRotateY(val);
 
-		sys::sceGuDisable(GuState::DepthTest);
-		sys::sceGuFrontFace(FrontFaceDirection::Clockwise);
-		sys::sceGuEnable(GuState::Texture2D);
+		// sys::sceGuDisable(GuState::DepthTest);
+		// sys::sceGuFrontFace(FrontFaceDirection::Clockwise);
+		// sys::sceGuEnable(GuState::Texture2D);
 		// crate::util::rectangle::colored_and_textured(&[0.0, 0.0, 128.0, 128.0], &[255, 255, 255, 255], &[0, 0, 128, 128]);
 
 		sys::sceGuFinish();
