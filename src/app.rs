@@ -197,9 +197,9 @@ impl App {
 			SceneState::InGame { timer, kills } => {
 				let dimensions = &[
 					0.0,
-					0.0,
-					1.0,
-					45.0 / h as f32
+					(SCREEN_HEIGHT - 28) as f32,
+					SCREEN_WIDTH as f32,
+					SCREEN_HEIGHT as f32,
 				];
 
 				rectangle::colored(dimensions, &[40, 40, 40, 192]);
