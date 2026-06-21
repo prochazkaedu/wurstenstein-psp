@@ -254,8 +254,18 @@ impl App {
 		unsafe {
 			sys::sceCtrlReadBufferPositive(pad_data, 1);
 
-			let stick_dx = (pad_data.lx as f32) / 128.0 - 1.0;
-			let stick_dy = (pad_data.ly as f32) / 128.0 - 1.0;
+			let mut stick_dx = (pad_data.lx as f32) / 128.0 - 1.0;
+			let mut stick_dy = (pad_data.ly as f32) / 128.0 - 1.0;
+
+			let deadzone = 0.2;
+
+			if (-deadzone..=deadzone).contains(&stick_dx) {
+				stick_dx = 0.0;
+			}
+
+			if (-deadzone..=deadzone).contains(&stick_dy) {
+				stick_dy = 0.0;
+			}
 
 			self.scene.camera.mouse_interact(stick_dx * 10.0, stick_dy * 10.0);
 
