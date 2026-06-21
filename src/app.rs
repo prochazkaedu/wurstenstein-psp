@@ -271,7 +271,7 @@ impl App {
 
 			match self.scene.state {
 				SceneState::InGame { .. } => {
-					self.params.flashlight_enabled = pad_data.buttons.contains(CtrlButtons::LTRIGGER);
+					self.params.flashlight_enabled = pad_data.buttons.contains(CtrlButtons::START);
 
 					if latched_buttons.contains(CtrlButtons::RTRIGGER) {
 						self.fire_bullet_from_player();
@@ -282,7 +282,7 @@ impl App {
 						self.scene.player.move_right = pad_data.buttons.contains(CtrlButtons::CIRCLE);
 						self.scene.player.move_forward = pad_data.buttons.contains(CtrlButtons::TRIANGLE);
 						self.scene.player.move_backward = pad_data.buttons.contains(CtrlButtons::CROSS);
-						self.scene.player.jump = pad_data.buttons.contains(CtrlButtons::DOWN);
+						self.scene.player.jump = pad_data.buttons.contains(CtrlButtons::LTRIGGER);
 					} else {
 						self.scene.camera.key_interact(Directions::Forward, pad_data.buttons.contains(CtrlButtons::TRIANGLE));
 						self.scene.camera.key_interact(Directions::Backward, pad_data.buttons.contains(CtrlButtons::CROSS));
