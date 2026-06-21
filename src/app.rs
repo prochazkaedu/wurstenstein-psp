@@ -296,21 +296,21 @@ impl App {
 			let mut camera_dx = 0.0;
 			let mut camera_dy = 0.0;
 
-			if(pad_data.buttons.contains(CtrlButtons::SQUARE)) {
+			if(pad_data.buttons.contains(CtrlButtons::LTRIGGER)) {
 				camera_dx -= 1.0;
 			}
 
-			if(pad_data.buttons.contains(CtrlButtons::CIRCLE)) {
+			if(pad_data.buttons.contains(CtrlButtons::RTRIGGER)) {
 				camera_dx += 1.0;
 			}
 
-			if(pad_data.buttons.contains(CtrlButtons::TRIANGLE)) {
-				camera_dy -= 1.0;
-			}
-
-			if(pad_data.buttons.contains(CtrlButtons::CROSS)) {
-				camera_dy += 1.0;
-			}
+			// if(pad_data.buttons.contains(CtrlButtons::TRIANGLE)) {
+			// 	camera_dy -= 1.0;
+			// }
+			//
+			// if(pad_data.buttons.contains(CtrlButtons::CROSS)) {
+			// 	camera_dy += 1.0;
+			// }
 
 			self.scene.camera.mouse_interact(camera_dx * 600.0 * dt, camera_dy * 600.0 * dt);
 
@@ -328,7 +328,7 @@ impl App {
 				SceneState::InGame { .. } => {
 					self.params.flashlight_enabled = pad_data.buttons.contains(CtrlButtons::START);
 
-					if latched_buttons.contains(CtrlButtons::RTRIGGER) {
+					if latched_buttons.contains(CtrlButtons::SQUARE) {
 						self.fire_bullet_from_player();
 					}
 
@@ -337,7 +337,7 @@ impl App {
 						self.scene.player.move_right = stick_dx > deadzone;
 						self.scene.player.move_forward = stick_dy < -deadzone;
 						self.scene.player.move_backward = stick_dy > deadzone;
-						self.scene.player.jump = pad_data.buttons.contains(CtrlButtons::LTRIGGER);
+						self.scene.player.jump = pad_data.buttons.contains(CtrlButtons::CROSS);
 					// } else {
 					// 	self.scene.camera.key_interact(Directions::Forward, pad_data.buttons.contains(CtrlButtons::TRIANGLE));
 					// 	self.scene.camera.key_interact(Directions::Backward, pad_data.buttons.contains(CtrlButtons::CROSS));
@@ -348,7 +348,7 @@ impl App {
 					// }
 				},
 				SceneState::Dead | SceneState::Title | SceneState::YoureWinner { .. } => {
-					if latched_buttons.contains(CtrlButtons::RTRIGGER) {
+					if latched_buttons.contains(CtrlButtons::SQUARE) {
 						self.respawn();
 					}
 				}
