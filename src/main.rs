@@ -6,6 +6,8 @@ mod assets;
 
 mod audio;
 
+mod controller;
+
 mod util;
 
 mod playfield;
