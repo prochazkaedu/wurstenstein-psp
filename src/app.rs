@@ -413,7 +413,7 @@ impl App {
 	fn init_3d(&self) {
 		unsafe {
 			sys::sceGuEnable(GuState::DepthTest);
-			// sys::sceGuEnable(GuState::Lighting);
+			sys::sceGuEnable(GuState::Lighting);
 			sys::sceGuEnable(GuState::CullFace);
 			sys::sceGuFrontFace(FrontFaceDirection::CounterClockwise);
 
@@ -451,7 +451,8 @@ impl App {
 			sys::sceGuLightColor(0, LightComponent::AMBIENT, ambient);
 			sys::sceGuLightColor(0, LightComponent::DIFFUSE, diffuse);
 			sys::sceGuLightColor(0, LightComponent::SPECULAR, specular);
-			sys::sceGuLightAtt(0, 0.0, 0.0, 0.0);
+			sys::sceGuAmbient(ambient);
+			sys::sceGuLightAtt(0, 1.0, 0.0, 0.0);
 
 			if self.params.flashlight_enabled {
 				let mut transform = self.scene.player.get_transform().clone();
