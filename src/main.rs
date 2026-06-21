@@ -2,7 +2,11 @@
 #![no_main]
 #![allow(unsafe_op_in_unsafe_fn)]
 
+mod assets;
+
 mod util;
+
+mod playfield;
 
 use core::{ptr, f32::consts::PI};
 use psp::Align16;
@@ -11,6 +15,8 @@ use psp::sys::{
 };
 use psp::vram_alloc::get_vram_allocator;
 use psp::{BUF_WIDTH, SCREEN_WIDTH, SCREEN_HEIGHT};
+
+use crate::util::model::Transform;
 
 psp::module!("sample_cube", 1, 1);
 
@@ -96,11 +102,14 @@ unsafe fn psp_main_inner() {
 	// compile-time error since fbp0, fbp1 and zbp are used later on
 	//allocator.free_all();
 
-	let font = include_bytes!("../notosansmono-ascii.ttf");
-	let mut font = crate::util::font::Font::new(font);
+	let files = ::assets::Assets::parse_from_data(include_bytes!("../assets.bin")).unwrap();
 
-	font.register_scale(20, &allocator);
-	font.register_scale(50, &allocator);
+	let mut assets = crate::assets::Assets::init(files.models, files.textures);
+
+	let font = include_bytes!("../notosansmono-ascii.ttf");
+
+	assets.font.register_scale(20, &allocator);
+	assets.font.register_scale(50, &allocator);
 
 	sys::sceGumLoadIdentity();
 
@@ -117,7 +126,7 @@ unsafe fn psp_main_inner() {
 	sys::sceGuEnable(GuState::ScissorTest);
 	sys::sceGuDepthFunc(DepthFunc::GreaterOrEqual);
 	sys::sceGuEnable(GuState::DepthTest);
-	sys::sceGuFrontFace(FrontFaceDirection::Clockwise);
+	sys::sceGuFrontFace(FrontFaceDirection::CounterClockwise);
 	sys::sceGuShadeModel(ShadingModel::Smooth);
 	sys::sceGuEnable(GuState::CullFace);
 	sys::sceGuEnable(GuState::Texture2D);
@@ -164,17 +173,15 @@ unsafe fn psp_main_inner() {
 		sys::sceGumMatrixMode(sys::MatrixMode::Model);
 		sys::sceGumLoadIdentity();
 
-		{
-			let pos = ScePspFVector3 { x: 0.0, y: 0.0, z: -2.5 };
-			let rot = ScePspFVector3 {
-				x: val * 10.0 * 0.79 * (PI / 180.0),
-				y: val * 10.0 * 0.98 * (PI / 180.0),
-				z: val * 10.0 * 1.32 * (PI / 180.0),
-			};
+		let pos = ScePspFVector3 { x: 0.0, y: 0.0, z: -2.5 };
+		sys::sceGumTranslate(&pos);
 
-			sys::sceGumTranslate(&pos);
-			sys::sceGumRotateXYZ(&rot);
-		}
+		let rot = ScePspFVector3 {
+			x: val * 10.0 * 0.79 * (PI / 180.0),
+			y: val * 10.0 * 0.98 * (PI / 180.0),
+			z: val * 10.0 * 1.32 * (PI / 180.0),
+		};
+		sys::sceGumRotateXYZ(&rot);
 
 		sys::sceGuDisable(GuState::DepthTest);
 		sys::sceGuEnable(GuState::Blend);
@@ -191,23 +198,31 @@ unsafe fn psp_main_inner() {
 
 		// draw cube
 
-		sys::sceGuColor(0x80FFFFFF);
-		sys::sceGuEnable(GuState::Texture2D);
-		sys::sceGumDrawArray(
-			GuPrimitive::Triangles,
-			VertexType::TEXTURE_32BITF | VertexType::VERTEX_32BITF | VertexType::TRANSFORM_3D,
-			12 * 3,
-			core::ptr::null(),
-			&VERTICES as *const Align16<_> as _,
-		);
+		// sys::sceGuColor(0xFFFFFFFF);
+		// sys::sceGuEnable(GuState::Texture2D);
+		// sys::sceGumDrawArray(
+		// 	GuPrimitive::Triangles,
+		// 	VertexType::TEXTURE_32BITF | VertexType::VERTEX_32BITF | VertexType::TRANSFORM_3D,
+		// 	12 * 3,
+		// 	core::ptr::null(),
+		// 	&VERTICES as *const Align16<_> as _,
+		// );
+		sys::sceGuEnable(GuState::DepthTest);
 
+		sys::sceGuFrontFace(FrontFaceDirection::CounterClockwise);
+		sys::sceGumLoadIdentity();
+		let pos = ScePspFVector3 { x: 0.0, y: -0.5, z: -3.0 };
+		sys::sceGumTranslate(&pos);
+		sys::sceGumRotateY(val);
+
+		assets.player.draw(&Transform::origin());
+
+		sys::sceGuDisable(GuState::DepthTest);
+		sys::sceGuFrontFace(FrontFaceDirection::Clockwise);
 		sys::sceGuEnable(GuState::Texture2D);
 		// crate::util::rectangle::colored_and_textured(&[0.0, 0.0, 128.0, 128.0], &[255, 255, 255, 255], &[0, 0, 128, 128]);
 
-		font.draw_string("Wurstenstein 3D", 50, 240, 120, crate::util::font::HorizAlign::Center, &[255, 255, 255, 255]);
-
-		sys::sceGuEnable(GuState::DepthTest);
-		sys::sceGuDisable(GuState::Blend);
+		assets.font.draw_string("Wurstenstein 3D", 50, 240, 120, crate::util::font::HorizAlign::Center, &[255, 255, 255, 255]);
 
 		sys::sceGuFinish();
 		sys::sceGuSync(GuSyncMode::Finish, GuSyncBehavior::Wait);
