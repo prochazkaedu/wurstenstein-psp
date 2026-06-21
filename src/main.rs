@@ -4,6 +4,8 @@
 
 mod assets;
 
+mod audio;
+
 mod util;
 
 mod playfield;
@@ -105,6 +107,7 @@ unsafe fn psp_main_inner() {
 	let files = ::assets::Assets::parse_from_data(include_bytes!("../assets.bin")).unwrap();
 
 	let mut assets = crate::assets::Assets::init(files.models, files.textures);
+	let mut audio = crate::audio::Audio::init(files.music, files.sounds);
 
 	let font = include_bytes!("../notosansmono-ascii.ttf");
 
