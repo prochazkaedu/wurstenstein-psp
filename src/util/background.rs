@@ -52,6 +52,8 @@ pub fn draw(time: f32) {
 	}
 
 	unsafe {
+		sys::sceGuDisable(GuState::Texture2D);
+
 		sys::sceGumDrawArray(
 			GuPrimitive::Points,
 			VertexType::COLOR_8888 | VertexType::VERTEX_32BITF | VertexType::TRANSFORM_2D,
