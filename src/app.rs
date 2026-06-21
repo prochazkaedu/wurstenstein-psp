@@ -458,15 +458,15 @@ impl App {
 
 				if !self.params.invincible {
 					if let Some(idx) = collision::check_with_enemies(&self.scene.player, &self.scene.enemies) && let Some(damage) = self.scene.enemies.collide_with_player(idx) {
-						// if self.scene.player.decrease_hp(damage) {
-						// 	self.audio.play_sound(SoundRequest::EnemyHit, None, 1.0);
-						// }
+						if self.scene.player.decrease_hp(damage) {
+							self.audio.play_sound(SoundRequest::EnemyHit, None, 1.0);
+						}
 					}
 
 					for bullet_idx in collision::check_player_with_bullet(&self.scene.player, &self.scene.bullets) {
-						// if self.scene.player.decrease_hp(2) {
-						// 	self.audio.play_sound(SoundRequest::EnemyHit, None, 1.0);
-						// }
+						if self.scene.player.decrease_hp(2) {
+							self.audio.play_sound(SoundRequest::EnemyHit, None, 1.0);
+						}
 						self.scene.bullets.despawn_bullet(bullet_idx);
 					}
 				}
