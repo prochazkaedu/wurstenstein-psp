@@ -94,17 +94,26 @@ impl Default for Parameters {
 }
 
 struct Perf {
-	start_time: f32,
-	last_time: f32,
+	start_time: u64,
+	last_time: u64,
+	last_update: u64,
+	fps: f32,
+	accumulated_dt: f32,
+	accumulated_count: usize
 }
 
 impl Default for Perf {
 	fn default() -> Self {
-		let start_time = 0.0;
+		let mut start_time = 0;
+		unsafe { sys::sceRtcGetCurrentTick(&mut start_time); }
 
 		Self {
 			start_time,
 			last_time: start_time,
+			last_update: start_time,
+			fps: 0.0,
+			accumulated_dt: 0.0,
+			accumulated_count: 0
 		}
 	}
 }
@@ -189,6 +198,9 @@ impl App {
 		let green = &[0, 255, 0, 255];
 		let blue = &[128, 128, 255, 255];
 
+		let tick = heapless::format!(64; "FPS: {:.1}", self.perf.fps).unwrap();
+		self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 10, 30, HorizAlign::Left, white);
+
 		match self.scene.state {
 			SceneState::Title => {
 				self.assets.font.draw_string("Wurstenstein 3D", FontSize::Title as u32, w as i32 / 2, h as i32 / 2 - 15, HorizAlign::Center, white);
@@ -248,7 +260,29 @@ impl App {
 		}
 	}
 
+	fn update_perf_data(&mut self, dt: f32) {
+		self.perf.accumulated_dt += dt;
+		self.perf.accumulated_count += 1;
+
+		if self.perf.last_time as i64 - self.perf.last_update as i64 >= 500000 {
+			let fps = (1.0 / self.perf.accumulated_dt) * self.perf.accumulated_count as f32;
+
+			self.perf.accumulated_count = 0;
+			self.perf.accumulated_dt = 0.0;
+
+			self.perf.fps = fps;
+
+			unsafe { sys::sceRtcGetCurrentTick(&mut self.perf.last_update); }
+		}
+	}
+
 	pub fn main_loop(&mut self) {
+		let mut new_time = 0;
+		unsafe { sys::sceRtcGetCurrentTick(&mut new_time); }
+
+		let dt = (new_time - self.perf.last_time) as f32 / 1000000.0;
+		self.perf.last_time = new_time;
+
 		let pad_data = &mut SceCtrlData::default();
 
 		unsafe {
@@ -267,7 +301,7 @@ impl App {
 				stick_dy = 0.0;
 			}
 
-			self.scene.camera.mouse_interact(stick_dx * 10.0, stick_dy * 10.0);
+			self.scene.camera.mouse_interact(stick_dx * 600.0 * dt, stick_dy * 600.0 * dt);
 
 			if pad_data.buttons.contains(CtrlButtons::LEFT) {
 				self.scene.camera.scroll_wheel_interact(-5.0);
@@ -314,13 +348,13 @@ impl App {
 			// TODO - POV camera toggle
 		}
 
-		self.update_state();
+		self.update_state(dt);
 
 		self.init_drawing();
 
 		self.init_2d();
 		background::draw(
-			self.perf.last_time - self.perf.start_time,
+			(self.perf.last_time - self.perf.start_time) as f32 / 1000000.0,
 		);
 
 		self.init_3d();
@@ -448,10 +482,7 @@ impl App {
 		}
 	}
 
-	fn update_state(&mut self) {
-		let dt = 0.01666;
-		self.perf.last_time += dt;
-
+	fn update_state(&mut self, dt: f32) {
 		if let SceneState::InGame { timer, kills } = &mut self.scene.state {
 			if !self.scene.player.is_dead() {
 				self.scene.player.has_contact_with_world = collision::check_with_ground(&self.scene.player, &EXAMPLE_MAZE);
@@ -560,6 +591,8 @@ impl App {
 		}
 
 		self.scene.explosions.update(dt);
+
+		self.update_perf_data(dt);
 	}
 	
 	fn update_shader_data(&mut self) {
