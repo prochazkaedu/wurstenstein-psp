@@ -274,8 +274,8 @@ impl App {
 					}
 
 					if self.params.pov_camera {
-						self.scene.player.move_left = pad_data.buttons.contains(CtrlButtons::CIRCLE);
-						self.scene.player.move_right = pad_data.buttons.contains(CtrlButtons::SQUARE);
+						self.scene.player.move_left = pad_data.buttons.contains(CtrlButtons::SQUARE);
+						self.scene.player.move_right = pad_data.buttons.contains(CtrlButtons::CIRCLE);
 						self.scene.player.move_forward = pad_data.buttons.contains(CtrlButtons::TRIANGLE);
 						self.scene.player.move_backward = pad_data.buttons.contains(CtrlButtons::CROSS);
 						self.scene.player.jump = pad_data.buttons.contains(CtrlButtons::DOWN);
