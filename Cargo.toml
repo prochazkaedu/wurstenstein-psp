@@ -11,5 +11,4 @@ psp = { path = "../../psp" }
 assets = { path = "./crates/assets" }
 modplay = { path = "./crates/MODPlay" }
 parry2d = { version = "0.28.0", default-features = false, features = ["f32", "required-features"] }
-oddio = { version = "0.7.4", features = ["libm", "no_std"] }
 

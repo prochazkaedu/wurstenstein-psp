@@ -53,9 +53,9 @@ fn parse_texture(bytes: &[u8]) -> Texture {
 	}
 }
 
-fn parse_audio(bytes: &[u8]) -> Vec<f32> {
+fn parse_audio(bytes: &[u8]) -> Vec<i16> {
 	let reader = hound::WavReader::new(Cursor::new(bytes)).unwrap();
-	reader.into_samples::<i16>().map(|x| x.unwrap() as f32 / 32768.0).collect::<Vec<_>>()
+	reader.into_samples::<i16>().map(|x| x.unwrap()).collect::<Vec<_>>()
 }
 
 fn main() {
