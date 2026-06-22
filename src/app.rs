@@ -2,14 +2,11 @@ use psp::sys::{ClearBuffer, CtrlButtons, FrontFaceDirection, GuState, GuSyncBeha
 use psp::{SCREEN_HEIGHT, SCREEN_WIDTH, sys};
 use psp::vram_alloc::SimpleVramAllocator;
 
-use core::num::NonZeroU32;
-use core::time::Duration;
-
 use crate::assets::Assets;
 use crate::audio::{Audio, MusicRequest, SoundRequest};
 use crate::playfield::EXAMPLE_MAZE;
 use crate::controller::bullet::{BulletManager, BulletKind};
-use crate::controller::camera::{Camera, Directions};
+use crate::controller::camera::Camera;
 use crate::controller::collision;
 use crate::controller::enemy::EnemyManager;
 use crate::controller::explosion::ExplosionManager;
@@ -97,6 +94,10 @@ struct Perf {
 	start_time: u64,
 	last_time: u64,
 	last_update: u64,
+	frame_start_time: u64,
+	frame_cpu_status_time: u64,
+	frame_cpu_draw_time: u64,
+	frame_gpu_time: u64,
 	fps: f32,
 	accumulated_dt: f32,
 	accumulated_count: usize
@@ -111,6 +112,10 @@ impl Default for Perf {
 			start_time,
 			last_time: start_time,
 			last_update: start_time,
+			frame_start_time: start_time,
+			frame_cpu_status_time: start_time,
+			frame_cpu_draw_time: start_time,
+			frame_gpu_time: start_time,
 			fps: 0.0,
 			accumulated_dt: 0.0,
 			accumulated_count: 0
@@ -144,16 +149,14 @@ impl App {
 
 		audio.play_music(MusicRequest::Title);
 
-		let mut app = App {
+		App {
 			assets,
 			audio,
 			scene,
 			perf,
 			params,
 			last_buttons: CtrlButtons::empty()
-		};
-
-		app
+		}
 	}
 
 	fn respawn(&mut self) {
@@ -288,19 +291,19 @@ impl App {
 		unsafe {
 			sys::sceCtrlReadBufferPositive(pad_data, 1);
 
-			let mut stick_dx = (pad_data.lx as f32) / 128.0 - 1.0;
-			let mut stick_dy = (pad_data.ly as f32) / 128.0 - 1.0;
+			let stick_dx = (pad_data.lx as f32) / 128.0 - 1.0;
+			let stick_dy = (pad_data.ly as f32) / 128.0 - 1.0;
 
 			let deadzone = 0.2;
 
 			let mut camera_dx = 0.0;
-			let mut camera_dy = 0.0;
+			let camera_dy = 0.0;
 
-			if(pad_data.buttons.contains(CtrlButtons::LTRIGGER)) {
+			if pad_data.buttons.contains(CtrlButtons::LTRIGGER) {
 				camera_dx -= 1.0;
 			}
 
-			if(pad_data.buttons.contains(CtrlButtons::RTRIGGER)) {
+			if pad_data.buttons.contains(CtrlButtons::RTRIGGER) {
 				camera_dx += 1.0;
 			}
 
@@ -421,7 +424,7 @@ impl App {
 			sys::sceGumLoadIdentity();
 			sys::sceGumPerspective(self.scene.camera.get_zoom(), 16.0 / 9.0, 0.5, 1000.0);
 
-			let view_mtx = unsafe { core::mem::transmute(self.scene.camera.get_view_matrix()) };
+			let view_mtx = core::mem::transmute(self.scene.camera.get_view_matrix());
 			sys::sceGumMatrixMode(MatrixMode::View);
 			sys::sceGumLoadMatrix(&view_mtx);
 
