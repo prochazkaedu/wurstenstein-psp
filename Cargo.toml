@@ -11,6 +11,7 @@ psp = { path = "../rust-psp/psp" }
 assets = { path = "./crates/assets" }
 modplay = { path = "./crates/MODPlay" }
 parry2d = { version = "0.28.0", default-features = false, features = ["f32", "required-features"] }
+once_cell_no_std = "0.1.1"
 
 [profile.release]
 lto = true

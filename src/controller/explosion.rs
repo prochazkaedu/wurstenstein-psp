@@ -7,7 +7,11 @@ use alloc::vec::Vec;
 
 use psp::sys::{self, GuPrimitive, GuState, VertexType};
 
+use once_cell_no_std::OnceCell;
+
 const EXPLOSION_POINTS: usize = 256;
+
+static HASH_CACHE: OnceCell<[[f32; 2]; EXPLOSION_POINTS]> = OnceCell::new();
 
 fn hash(seed: f32) -> f32 {
 	let x = unsafe { psp::math::sinf(seed) } * 43758.5453123;
@@ -52,16 +56,33 @@ impl Explosion {
 	}
 
 	fn draw(&self) {
-		let mut mem = allocate_display_list(EXPLOSION_POINTS);
+		let hashes = match HASH_CACHE.get() {
+			Some(val) => val,
+			None => {
+				let mut arr = [[0.0, 0.0]; EXPLOSION_POINTS];
+
+				for (seed, y) in arr.iter_mut().enumerate() {
+					let dist = hash(seed as f32) * 2.0;
+					let angle = hash(seed as f32 * 1234.0) * 2.0 * core::f32::consts::PI;
+
+					let dx = unsafe { psp::math::cosf(angle) } * dist;
+					let dz = unsafe { psp::math::sinf(angle) } * dist;
+
+					*y = [ dx, dz ];
+				}
+
+				let _ = HASH_CACHE.set(arr);
+
+				HASH_CACHE.get().unwrap()
+			}
+		};
+
+		let mem = allocate_display_list(EXPLOSION_POINTS);
 
 		for point in 0..EXPLOSION_POINTS {
 			let seed = point as f32 / EXPLOSION_POINTS as f32;
 
-			let dist = hash(seed) * 2.0;
-			let angle = hash(seed * 1234.0) * 2.0 * core::f32::consts::PI;
-
-			let dx = unsafe { psp::math::cosf(angle) } * dist;
-			let dz = unsafe { psp::math::sinf(angle) } * dist;
+			let [dx, dz] = hashes[point];
 
 			let x = self.base_position.x + self.timer * dx;
 			let y = self.base_position.y + -4.0 * self.timer * self.timer + 4.0 * self.timer;

@@ -717,6 +717,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 
 [[package]]
+name = "once_cell_no_std"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fa32e177c2b2d33c279f41b74828c00edf20a00fefca2cb73afe61c95f1a0c68"
+
+[[package]]
 name = "ordered-float"
 version = "5.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1194,6 +1200,7 @@ dependencies = [
  "heapless",
  "libm",
  "modplay",
+ "once_cell_no_std",
  "parry2d",
  "psp",
 ]

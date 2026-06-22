@@ -10,6 +10,8 @@ use psp::sys::{
 
 use crate::util::allocate_display_list;
 
+use once_cell_no_std::OnceCell;
+
 const WIDTH: usize = SCREEN_WIDTH as usize;
 const HEIGHT: usize = SCREEN_HEIGHT as usize;
 
@@ -27,25 +29,42 @@ struct ColoredPoint {
 
 fn hash(seed: f32) -> f32 {
 	let x = unsafe { sinf(seed) } * 43758.5453123;
-	x - libm::floorf(x)
+	x - psp::math::floorf(x)
 }
 
+static HASH_CACHE: OnceCell<[f32; HEIGHT]> = OnceCell::new();
+
 pub fn draw(time: f32) {
-	let mut mem = allocate_display_list(HEIGHT);
+	let hashes = match HASH_CACHE.get() {
+		Some(val) => val,
+		None => {
+			let mut arr = [0.0; HEIGHT];
+
+			for (seed, y) in arr.iter_mut().enumerate() {
+				*y = hash(seed as f32);
+			}
+
+			let _ = HASH_CACHE.set(arr);
+
+			HASH_CACHE.get().unwrap()
+		}
+	};
+
+	let mem = allocate_display_list(HEIGHT);
 
 	for y in 0..HEIGHT {
-		let seed_val = hash(y as f32);
+		let seed_val = hashes[y];
 
 		let speed = seed_val * 0.5 + 0.5;
-		let x = speed * (time / 3.0 + 6.7) + hash(y as f32 * 1.234);
-		let x = x - libm::floorf(x);
+		let x = speed * (time / 3.0 + 6.7);
+		let x = (x * WIDTH as f32) as usize % WIDTH;
 
 		mem[y] = ColoredPoint {
 			r: (seed_val * 255.0) as u8,
 			g: (seed_val * 255.0) as u8,
 			b: (seed_val * 255.0) as u8,
 			a: 255,
-			x: libm::floorf(x * WIDTH as f32),
+			x: x as f32,
 			y: y as f32,
 			z: 0.0
 		};
