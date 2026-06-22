@@ -14,7 +14,7 @@ const EXPLOSION_POINTS: usize = 256;
 static HASH_CACHE: OnceCell<[[f32; 2]; EXPLOSION_POINTS]> = OnceCell::new();
 
 fn hash(seed: f32) -> f32 {
-	let x = unsafe { psp::math::sinf(seed) } * 43758.5453123;
+	let x = unsafe { psp::math::sinf(seed) } * 43758.545;
 	x - libm::floorf(x)
 }
 

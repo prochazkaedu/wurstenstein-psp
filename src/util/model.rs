@@ -1,7 +1,7 @@
 use crate::util::algebra::Vector3;
 
 use psp::sys::{
-	self, BlendFactor, BlendOp, ClearBuffer, DepthFunc, DisplayPixelFormat, FrontFaceDirection, GuContextType, GuPrimitive, GuState, GuSyncBehavior, GuSyncMode, GuTexWrapMode, MipmapLevel, ScePspFVector3, ShadingModel, TextureColorComponent, TextureEffect, TextureFilter, TexturePixelFormat, VertexType
+	self, GuPrimitive, GuState, MipmapLevel, ScePspFVector3, TextureFilter, TexturePixelFormat, VertexType
 };
 
 extern crate alloc;
@@ -37,10 +37,10 @@ impl Transform {
 		self
 	}
 
-	pub fn with_scale(mut self, scale: Vector3) -> Self {
-		self.scale = scale;
-		self
-	}
+	// pub fn with_scale(mut self, scale: Vector3) -> Self {
+	// 	self.scale = scale;
+	// 	self
+	// }
 
 	pub fn with_rotation(mut self, rotation: Vector3) -> Self {
 		self.rotation = rotation;
@@ -75,9 +75,7 @@ impl Model {
 			x => 0x10 - x
 		};
 
-		for x in 0..start_offset {
-			texture.push(0);
-		}
+		texture.resize(start_offset, 0);
 
 		assert_eq!((texture.as_ptr() as usize + texture.len()) & 0xF, 0);
 

@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use core::ops::RangeInclusive;
 
 use crate::util::algebra::{Matrix4, Vector3};

@@ -1,9 +1,4 @@
-use psp::sys::{
-	self, ScePspFVector3, DisplayPixelFormat, GuContextType, GuSyncMode, GuSyncBehavior,
-	GuPrimitive, TextureFilter, TextureEffect, TextureColorComponent,
-	FrontFaceDirection, ShadingModel, GuState, TexturePixelFormat, DepthFunc,
-	VertexType, ClearBuffer, MipmapLevel,
-};
+use psp::sys::{self, GuPrimitive, GuState, VertexType};
 
 use crate::util::allocate_display_list;
 
@@ -29,7 +24,7 @@ pub fn colored(position: &[f32; 4], color: &[u8; 4]) {
 
 		sys::sceGuColor(u32::from_le_bytes(*color));
 
-		let mut mem = allocate_display_list(4);
+		let mem = allocate_display_list(4);
 
 		mem[0] = Vertex { x: position[2], y: position[3], z: 0.0 };
 		mem[1] = Vertex { x: position[0], y: position[3], z: 0.0 };
@@ -55,7 +50,7 @@ pub fn colored_and_textured(position: &[f32; 4], color: &[u8; 4], texcoords: &[u
 
 		sys::sceGuColor(u32::from_le_bytes(*color));
 
-		let mut mem = allocate_display_list(4);
+		let mem = allocate_display_list(4);
 
 		mem[0] = VertexTex { u: texcoords[2], v: texcoords[3], x: position[2], y: position[3], z: 0.0 };
 		mem[1] = VertexTex { u: texcoords[0], v: texcoords[3], x: position[0], y: position[3], z: 0.0 };

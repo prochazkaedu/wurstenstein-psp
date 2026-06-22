@@ -8,7 +8,7 @@ include!("../assets_struct.rs");
 impl Assets {
 	pub fn parse_from_data(data: &[u8]) -> Result<Self, &'static str> {
 		wincode::deserialize(data)
-			.map_err(|e| "Error deserializing assets file")
+			.map_err(|_| "Error deserializing assets file")
 	}
 }
 

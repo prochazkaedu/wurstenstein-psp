@@ -6,13 +6,10 @@ use modplay::{ModAction, ModPlayer, ModRule};
 
 use psp::sys::{self, AUDIO_VOLUME_MAX, AudioFormat, ThreadAttributes};
 
-use crate::audio;
-use crate::util::algebra::{Vector2, Vector3};
+use crate::util::algebra::{Vector3};
 
 extern crate alloc;
-use alloc::sync::Arc;
 use alloc::vec::Vec;
-use alloc::vec;
 use alloc::boxed::Box;
 
 const TITLE_RULES: &[ModRule<'static>] = &[
@@ -65,7 +62,7 @@ pub enum SoundRequest {
 	EnemyHit,
 	EnemyDeath,
 	EnemyExplosion,
-	EnemyShoot,
+	// EnemyShoot,
 	PowerupHpPickup,
 	PowerupEnergyPickup,
 	PowerupSpeedPickup
@@ -95,7 +92,7 @@ struct AudioData {
 	enemy_hit: Vec<i16>,
 	enemy_explosion: Vec<i16>,
 	enemy_death: Vec<i16>,
-	enemy_shoot: Vec<i16>,
+	// enemy_shoot: Vec<i16>,
 
 	powerup_hp_pickup: Vec<i16>,
 	powerup_energy_pickup: Vec<i16>,
@@ -104,11 +101,10 @@ struct AudioData {
 
 struct PlayingSound<'a> {
 	samples: &'a [i16],
-	idx: usize,
-	atten: i16
+	idx: usize
 }
 
-unsafe extern "C" fn audio_thread_entry(args: usize, data: *mut c_void) -> i32 {
+unsafe extern "C" fn audio_thread_entry(_args: usize, data: *mut c_void) -> i32 {
 	let data = &mut *(data as *mut AudioData);
 
 	let mut sounds: [Option<PlayingSound>; 16] = [const { None }; 16];
@@ -155,13 +151,13 @@ unsafe extern "C" fn audio_thread_entry(args: usize, data: *mut c_void) -> i32 {
 							SoundRequest::EnemyHit => &data.enemy_hit,
 							SoundRequest::EnemyDeath => &data.enemy_death,
 							SoundRequest::EnemyExplosion => &data.enemy_explosion,
-							SoundRequest::EnemyShoot => &data.enemy_shoot,
+							// SoundRequest::EnemyShoot => &data.enemy_shoot,
 							SoundRequest::PowerupHpPickup => &data.powerup_hp_pickup,
 							SoundRequest::PowerupEnergyPickup => &data.powerup_energy_pickup,
 							SoundRequest::PowerupSpeedPickup => &data.powerup_speed_pickup,
 						};
 
-						*sound = Some(PlayingSound { samples, idx: 0, atten: i16::MAX });
+						*sound = Some(PlayingSound { samples, idx: 0 });
 						break;
 					}
 				}
@@ -194,13 +190,11 @@ unsafe extern "C" fn audio_thread_entry(args: usize, data: *mut c_void) -> i32 {
 
 		sys::sceAudioOutputPannedBlocking(data.audio_channel, AUDIO_VOLUME_MAX as i32, AUDIO_VOLUME_MAX as i32, buffer.as_ptr() as _);
 	}
-
-	0
 }
 
 impl Audio {
 	pub fn init(music: Music, sounds: Sounds) -> Self {
-		let mut queue = Box::leak(Box::new(spsc::Queue::<AudioRequest, 64>::new()));
+		let queue = Box::leak(Box::new(spsc::Queue::<AudioRequest, 64>::new()));
 		let (tx, rx) = queue.split();
 
 		let audio_channel = unsafe { sys::sceAudioChReserve(-1, 1024, AudioFormat::Stereo) };
@@ -218,7 +212,7 @@ impl Audio {
 			enemy_hit: sounds.enemy_hit,
 			enemy_explosion: sounds.enemy_explosion,
 			enemy_death: sounds.enemy_death,
-			enemy_shoot: sounds.enemy_shoot,
+			// enemy_shoot: sounds.enemy_shoot,
 			powerup_hp_pickup: sounds.powerup_hp_pickup,
 			powerup_energy_pickup: sounds.powerup_energy_pickup,
 			powerup_speed_pickup: sounds.powerup_speed_pickup,
@@ -240,12 +234,12 @@ impl Audio {
 		let _ = self.tx.enqueue(AudioRequest::PlayMusic { kind });
 	}
 
-	pub fn play_sound(&mut self, kind: SoundRequest, position: Option<Vector3>, radius: f32) {
+	pub fn play_sound(&mut self, kind: SoundRequest, _position: Option<Vector3>, _radius: f32) {
 		// let _ = self.tx.enqueue(AudioRequest::PlaySound { kind, position, radius });
 		let _ = self.tx.enqueue(AudioRequest::PlaySound { kind });
 	}
 
-	pub fn update_position(&mut self, position: Vector3, rotation: f32) {
+	pub fn update_position(&mut self, _position: Vector3, _rotation: f32) {
 		// let _ = self.tx.enqueue(AudioRequest::SetPosition { position, rotation });
 	}
 }

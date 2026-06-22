@@ -1,8 +1,6 @@
-use psp::Align16;
 use psp::sys::{
 	self,
 	TexturePixelFormat,
-	TextureFilter,
 	MipmapLevel
 };
 use psp::vram_alloc::SimpleVramAllocator;
@@ -104,7 +102,7 @@ impl RenderedFont {
 					curr_y = 0;
 				}
 
-				char_map.push(Glyph {
+				let _ = char_map.push(Glyph {
 					tex_x: base_x,
 					tex_y: base_y,
 					x_off: font.h_side_bearing(id) as i32,
@@ -124,7 +122,7 @@ impl RenderedFont {
 				base_x += cw;
 				curr_y = curr_y.max(q.px_bounds().height() as u32);
 			} else {
-				char_map.push(Glyph {
+				let _ = char_map.push(Glyph {
 					tex_x: 0,
 					tex_y: 0,
 					x_off: font.h_side_bearing(id) as i32,
@@ -168,7 +166,7 @@ impl<'a> Font<'a> {
 	}
 
 	pub fn register_scale(&mut self, scale: u32, alloc: &SimpleVramAllocator) {
-		self.fonts.push(RenderedFont::new(&self.font, scale, alloc));
+		let _ = self.fonts.push(RenderedFont::new(&self.font, scale, alloc));
 	}
 
 	pub fn draw_string(&self, string: &str, scale: u32, x: i32, y: i32, align: HorizAlign, color: &[u8; 4]) -> i32 {

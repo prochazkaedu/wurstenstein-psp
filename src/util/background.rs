@@ -1,12 +1,6 @@
 use psp::{SCREEN_WIDTH, SCREEN_HEIGHT};
-use psp::Align16;
 use psp::math::sinf;
-use psp::sys::{
-	self, ScePspFVector3, DisplayPixelFormat, GuContextType, GuSyncMode, GuSyncBehavior,
-	GuPrimitive, TextureFilter, TextureEffect, TextureColorComponent,
-	FrontFaceDirection, ShadingModel, GuState, TexturePixelFormat, DepthFunc,
-	VertexType, ClearBuffer, MipmapLevel,
-};
+use psp::sys::{self, GuPrimitive, GuState, VertexType};
 
 use crate::util::allocate_display_list;
 
@@ -28,7 +22,7 @@ struct ColoredPoint {
 }
 
 fn hash(seed: f32) -> f32 {
-	let x = unsafe { sinf(seed) } * 43758.5453123;
+	let x = unsafe { sinf(seed) } * 43758.545;
 	x - psp::math::floorf(x)
 }
 

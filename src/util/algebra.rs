@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use core::ops::{Add, AddAssign, Div, Mul, Sub, SubAssign};
 use psp::math::{acosf, cosf, sinf, hypotf};
 

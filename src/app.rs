@@ -1,4 +1,4 @@
-use psp::sys::{ClearBuffer, CtrlButtons, FrontFaceDirection, GuState, GuSyncBehavior, GuSyncMode, LightComponent, LightType, MatrixMode, SceCtrlData, ScePspFVector3};
+use psp::sys::{ClearBuffer, CtrlButtons, FrontFaceDirection, GuState, GuSyncBehavior, GuSyncMode, LightComponent, LightType, MatrixMode, SceCtrlData, ScePspFMatrix4, ScePspFVector3};
 use psp::{SCREEN_HEIGHT, SCREEN_WIDTH, sys};
 use psp::vram_alloc::SimpleVramAllocator;
 
@@ -17,7 +17,7 @@ use crate::util::font::HorizAlign;
 use crate::util::model::Transform;
 use crate::util::rectangle;
 use crate::util::transparent::TransparentRenderer;
-use crate::util::algebra::{Vector2, Vector3};
+use crate::util::algebra::{Matrix4, Vector2, Vector3};
 
 pub struct App {
 	assets: Assets,
@@ -566,7 +566,7 @@ impl App {
 			sys::sceGumLoadIdentity();
 			sys::sceGumPerspective(self.scene.camera.get_zoom(), 16.0 / 9.0, 0.5, 1000.0);
 
-			let view_mtx = core::mem::transmute(self.scene.camera.get_view_matrix());
+			let view_mtx = core::mem::transmute::<Matrix4, ScePspFMatrix4>(self.scene.camera.get_view_matrix());
 			sys::sceGumMatrixMode(MatrixMode::View);
 			sys::sceGumLoadMatrix(&view_mtx);
 
@@ -581,7 +581,7 @@ impl App {
 			let ambient = 0xFF484848;
 			let diffuse = 0xFF646464;
 			let specular = 0xFF646464;
-			let shininess = [10.0];
+			// let shininess = [10.0];
 
 			let none = 0x00000000;
 			let full = 0xFFFFFFFF;
@@ -753,10 +753,6 @@ impl App {
 		self.scene.explosions.update(dt);
 
 		self.update_perf_data(dt);
-	}
-	
-	fn update_shader_data(&mut self) {
-		// self.scene.powerups.update_point_lights(program);
 	}
 }
 

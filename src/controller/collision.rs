@@ -20,8 +20,8 @@ pub fn check_with_ground<T: PlayfieldPiece>(player: &PlayerController, world: &P
 	player_pose.rotation = Rot2::from_angle(-transform.rotation.x);
 	player_pose.translation += Vec2::new(transform.position.x, transform.position.z);
 
-	let nearest_world_x = unsafe { psp::math::roundf(transform.position.x / world.scale) } as isize;
-	let nearest_world_z = unsafe { psp::math::roundf(transform.position.z / world.scale) } as isize;
+	let nearest_world_x = psp::math::roundf(transform.position.x / world.scale) as isize;
+	let nearest_world_z = psp::math::roundf(transform.position.z / world.scale) as isize;
 
 	let world_shape = Cuboid::new(Vec2::new(world.scale / 2.0, world.scale / 2.0));
 
