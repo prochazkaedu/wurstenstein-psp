@@ -12,3 +12,10 @@ assets = { path = "./crates/assets" }
 modplay = { path = "./crates/MODPlay" }
 parry2d = { version = "0.28.0", default-features = false, features = ["f32", "required-features"] }
 
+[profile.release]
+lto = true
+codegen-units = 1
+# panic = "abort"
+opt-level = 3
+# debug = true
+strip = false

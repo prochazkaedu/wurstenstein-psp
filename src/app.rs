@@ -78,6 +78,7 @@ struct Parameters {
 	flashlight_enabled: bool,
 	invincible: bool,
 	pov_camera: bool,
+	stats: StatsLevel
 }
 
 impl Default for Parameters {
@@ -86,8 +87,17 @@ impl Default for Parameters {
 			flashlight_enabled: false,
 			invincible: false,
 			pov_camera: true,
+			stats: StatsLevel::None
 		}
 	}
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum StatsLevel {
+	None,
+	Fps,
+	Overall,
+	DetailedCpuDraw
 }
 
 struct Perf {
@@ -96,6 +106,15 @@ struct Perf {
 	last_update: u64,
 	frame_start_time: u64,
 	frame_cpu_status_time: u64,
+	frame_cpu_background_time: u64,
+	frame_cpu_init_3d_time: u64,
+	frame_cpu_terrain_time: u64,
+	frame_cpu_player_time: u64,
+	frame_cpu_enemies_time: u64,
+	frame_cpu_bullets_time: u64,
+	frame_cpu_explosions_time: u64,
+	frame_cpu_transparent_time: u64,
+	frame_cpu_ui_time: u64,
 	frame_cpu_draw_time: u64,
 	frame_gpu_time: u64,
 	fps: f32,
@@ -114,6 +133,15 @@ impl Default for Perf {
 			last_update: start_time,
 			frame_start_time: start_time,
 			frame_cpu_status_time: start_time,
+			frame_cpu_background_time: start_time,
+			frame_cpu_init_3d_time: start_time,
+			frame_cpu_terrain_time: start_time,
+			frame_cpu_player_time: start_time,
+			frame_cpu_enemies_time: start_time,
+			frame_cpu_bullets_time: start_time,
+			frame_cpu_explosions_time: start_time,
+			frame_cpu_transparent_time: start_time,
+			frame_cpu_ui_time: start_time,
 			frame_cpu_draw_time: start_time,
 			frame_gpu_time: start_time,
 			fps: 0.0,
@@ -259,8 +287,59 @@ impl App {
 			}
 		}
 
-		let tick = heapless::format!(64; "FPS: {:.1}", self.perf.fps).unwrap();
-		self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 10, 30, HorizAlign::Left, white);
+		if self.params.stats != StatsLevel::None {
+			let tick = heapless::format!(64; "FPS: {:.1}", self.perf.fps).unwrap();
+			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 10, 30, HorizAlign::Left, white);
+		}
+
+		if self.params.stats == StatsLevel::DetailedCpuDraw {
+			let tick = heapless::format!(64; "Background:{:6}", self.perf.frame_cpu_background_time - self.perf.frame_cpu_status_time).unwrap();
+			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 30, HorizAlign::Right, white);
+
+			let tick = heapless::format!(64; "3D init:{:6}", self.perf.frame_cpu_init_3d_time - self.perf.frame_cpu_background_time).unwrap();
+			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 50, HorizAlign::Right, white);
+
+			let tick = heapless::format!(64; "Terrain:{:6}", self.perf.frame_cpu_terrain_time - self.perf.frame_cpu_init_3d_time).unwrap();
+			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 70, HorizAlign::Right, white);
+
+			let tick = heapless::format!(64; "Player:{:6}", self.perf.frame_cpu_player_time - self.perf.frame_cpu_terrain_time).unwrap();
+			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 90, HorizAlign::Right, white);
+
+			let tick = heapless::format!(64; "Enemies:{:6}", self.perf.frame_cpu_enemies_time - self.perf.frame_cpu_player_time).unwrap();
+			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 110, HorizAlign::Right, white);
+
+			let tick = heapless::format!(64; "Bullets:{:6}", self.perf.frame_cpu_bullets_time - self.perf.frame_cpu_enemies_time).unwrap();
+			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 130, HorizAlign::Right, white);
+
+			let tick = heapless::format!(64; "Explosions:{:6}", self.perf.frame_cpu_explosions_time - self.perf.frame_cpu_bullets_time).unwrap();
+			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 150, HorizAlign::Right, white);
+
+			let tick = heapless::format!(64; "Transparent:{:6}", self.perf.frame_cpu_transparent_time - self.perf.frame_cpu_explosions_time).unwrap();
+			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 170, HorizAlign::Right, white);
+
+			let tick = heapless::format!(64; "UI:{:6}", self.perf.frame_cpu_ui_time - self.perf.frame_cpu_transparent_time).unwrap();
+			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 190, HorizAlign::Right, white);
+
+			let tick = heapless::format!(64; "CPU draw:{:6}", self.perf.frame_cpu_draw_time - self.perf.frame_cpu_status_time).unwrap();
+			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 210, HorizAlign::Right, white);
+
+			let tick = heapless::format!(64; "Total time:{:6}", self.perf.frame_gpu_time - self.perf.frame_start_time).unwrap();
+			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 230, HorizAlign::Right, white);
+		}
+
+		if self.params.stats == StatsLevel::Overall {
+			let tick = heapless::format!(64; "CPU compute:{:6}", self.perf.frame_cpu_status_time - self.perf.frame_start_time).unwrap();
+			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 30, HorizAlign::Right, white);
+
+			let tick = heapless::format!(64; "CPU draw:{:6}", self.perf.frame_cpu_draw_time - self.perf.frame_cpu_status_time).unwrap();
+			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 50, HorizAlign::Right, white);
+
+			let tick = heapless::format!(64; "GPU draw:{:6}", self.perf.frame_gpu_time - self.perf.frame_cpu_draw_time).unwrap();
+			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 70, HorizAlign::Right, white);
+
+			let tick = heapless::format!(64; "Total time:{:6}", self.perf.frame_gpu_time - self.perf.frame_start_time).unwrap();
+			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 90, HorizAlign::Right, white);
+		}
 	}
 
 	fn update_perf_data(&mut self, dt: f32) {
@@ -327,6 +406,15 @@ impl App {
 
 			let latched_buttons = pad_data.buttons.symmetric_difference(self.last_buttons).intersection(pad_data.buttons);
 
+			if latched_buttons.contains(CtrlButtons::SELECT) {
+				self.params.stats = match self.params.stats {
+					StatsLevel::None => StatsLevel::Fps,
+					StatsLevel::Fps => StatsLevel::Overall,
+					StatsLevel::Overall => StatsLevel::DetailedCpuDraw,
+					StatsLevel::DetailedCpuDraw => StatsLevel::None,
+				}
+			}
+
 			match self.scene.state {
 				SceneState::InGame { .. } => {
 					self.params.flashlight_enabled = pad_data.buttons.contains(CtrlButtons::START);
@@ -364,27 +452,53 @@ impl App {
 
 		self.update_state(dt);
 
+		let mut frame_cpu_status_time = 0;
+		unsafe { sys::sceRtcGetCurrentTick(&mut frame_cpu_status_time); }
+
 		self.init_drawing();
+
+		let mut frame_cpu_background_time = frame_cpu_status_time;
+		let mut frame_cpu_init_3d_time = frame_cpu_status_time;
+		let mut frame_cpu_terrain_time = frame_cpu_status_time;
+		let mut frame_cpu_player_time = frame_cpu_status_time;
+		let mut frame_cpu_enemies_time = frame_cpu_status_time;
+		let mut frame_cpu_bullets_time = frame_cpu_status_time;
+		let mut frame_cpu_explosions_time = frame_cpu_status_time;
+		let mut frame_cpu_transparent_time = frame_cpu_status_time;
+		let mut frame_cpu_ui_time = frame_cpu_status_time;
 
 		self.init_2d();
 		background::draw(
 			(self.perf.last_time - self.perf.start_time) as f32 / 1000000.0,
 		);
 
+		unsafe { sys::sceRtcGetCurrentTick(&mut frame_cpu_background_time); }
+
 		self.init_3d();
+
+		unsafe { sys::sceRtcGetCurrentTick(&mut frame_cpu_init_3d_time); }
 
 		let view_mtx = self.scene.camera.get_view_matrix();
 
 		if self.scene.state != SceneState::Title {
 			self.assets.terrain.draw(&Transform::origin());
 
+			unsafe { sys::sceRtcGetCurrentTick(&mut frame_cpu_terrain_time); }
+
 			self.assets.player.draw(self.scene.player.get_transform());
 			if self.scene.player.get_stats().ammo > 0 {
 				self.assets.sausage_tip.draw(self.scene.player.get_transform());
 			}
 
+			unsafe { sys::sceRtcGetCurrentTick(&mut frame_cpu_player_time); }
+
 			self.scene.enemies.render(&self.assets);
+
+			unsafe { sys::sceRtcGetCurrentTick(&mut frame_cpu_enemies_time); }
+
 			self.scene.bullets.render(&self.assets);
+
+			unsafe { sys::sceRtcGetCurrentTick(&mut frame_cpu_bullets_time); }
 
 			unsafe {
 				sys::sceGuDisable(GuState::Lighting);
@@ -392,17 +506,45 @@ impl App {
 
 			self.scene.explosions.render();
 
+			unsafe { sys::sceRtcGetCurrentTick(&mut frame_cpu_explosions_time); }
+
 			let mut transparent = TransparentRenderer::new();
 
 			self.scene.powerups.render(&self.assets, &mut transparent);
 
 			transparent.render(view_mtx);
+
+			unsafe { sys::sceRtcGetCurrentTick(&mut frame_cpu_transparent_time); }
 		}
 
 		self.init_2d();
 		self.redraw_ui();
 
+		unsafe { sys::sceRtcGetCurrentTick(&mut frame_cpu_ui_time); }
+
+		let mut frame_cpu_draw_time = 0;
+		unsafe { sys::sceRtcGetCurrentTick(&mut frame_cpu_draw_time); }
+
 		self.end_drawing();
+
+		let mut frame_gpu_draw_time = 0;
+		unsafe { sys::sceRtcGetCurrentTick(&mut frame_gpu_draw_time); }
+
+		self.vsync();
+
+		self.perf.frame_start_time = new_time;
+		self.perf.frame_cpu_status_time = frame_cpu_status_time;
+		self.perf.frame_cpu_draw_time = frame_cpu_draw_time;
+		self.perf.frame_gpu_time = frame_gpu_draw_time;
+		self.perf.frame_cpu_background_time = frame_cpu_background_time;
+		self.perf.frame_cpu_init_3d_time = frame_cpu_init_3d_time;
+		self.perf.frame_cpu_terrain_time = frame_cpu_terrain_time;
+		self.perf.frame_cpu_player_time = frame_cpu_player_time;
+		self.perf.frame_cpu_enemies_time = frame_cpu_enemies_time;
+		self.perf.frame_cpu_bullets_time = frame_cpu_bullets_time;
+		self.perf.frame_cpu_explosions_time = frame_cpu_explosions_time;
+		self.perf.frame_cpu_transparent_time = frame_cpu_transparent_time;
+		self.perf.frame_cpu_ui_time = frame_cpu_ui_time;
 	}
 
 	fn init_2d(&self) {
@@ -490,7 +632,11 @@ impl App {
 		unsafe {
 			sys::sceGuFinish();
 			sys::sceGuSync(GuSyncMode::Finish, GuSyncBehavior::Wait);
+		}
+	}
 
+	fn vsync(&self) {
+		unsafe {
 			sys::sceDisplayWaitVblankStart();
 			sys::sceGuSwapBuffers();
 		}
