@@ -2,6 +2,8 @@
 
 It's Wurstenstein, the award-winning videogame, but this time for the Sony PSP, the greatest handheld game console ever created[^1].
 
+https://github.com/user-attachments/assets/840bdd24-7227-4feb-9c5b-325ade2c21c0
+
 [^1]: Maybe except for the Vita, which is next on the chopping block, once I get hold of one.
 
 ## Installing
