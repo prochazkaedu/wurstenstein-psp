@@ -13,3 +13,9 @@ pub fn allocate_display_list<T: Sized>(count: usize) -> &'static mut [T] {
 	}
 }
 
+pub fn get_tick() -> u64 {
+	let mut time = 0;
+	unsafe { psp::sys::sceRtcGetCurrentTick(&mut time); }
+	time
+}
+
