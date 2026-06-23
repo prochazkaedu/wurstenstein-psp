@@ -115,6 +115,7 @@ struct Perf {
 	frame_cpu_explosions_time: u64,
 	frame_cpu_transparent_time: u64,
 	frame_cpu_ui_time: u64,
+	frame_cpu_rect_time: u64,
 	frame_cpu_draw_time: u64,
 	frame_gpu_time: u64,
 	fps: f32,
@@ -142,6 +143,7 @@ impl Default for Perf {
 			frame_cpu_explosions_time: start_time,
 			frame_cpu_transparent_time: start_time,
 			frame_cpu_ui_time: start_time,
+			frame_cpu_rect_time: start_time,
 			frame_cpu_draw_time: start_time,
 			frame_gpu_time: start_time,
 			fps: 0.0,
@@ -320,11 +322,14 @@ impl App {
 			let tick = heapless::format!(64; "UI:{:6}", self.perf.frame_cpu_ui_time - self.perf.frame_cpu_transparent_time).unwrap();
 			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 190, HorizAlign::Right, white);
 
-			let tick = heapless::format!(64; "CPU draw:{:6}", self.perf.frame_cpu_draw_time - self.perf.frame_cpu_status_time).unwrap();
+			let tick = heapless::format!(64; "Rects:{:6}", self.perf.frame_cpu_rect_time - self.perf.frame_cpu_ui_time).unwrap();
 			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 210, HorizAlign::Right, white);
 
-			let tick = heapless::format!(64; "Total time:{:6}", self.perf.frame_gpu_time - self.perf.frame_start_time).unwrap();
+			let tick = heapless::format!(64; "CPU draw:{:6}", self.perf.frame_cpu_draw_time - self.perf.frame_cpu_status_time).unwrap();
 			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 230, HorizAlign::Right, white);
+
+			let tick = heapless::format!(64; "Total time:{:6}", self.perf.frame_gpu_time - self.perf.frame_start_time).unwrap();
+			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 250, HorizAlign::Right, white);
 		}
 
 		if self.params.stats == StatsLevel::Overall {
@@ -466,6 +471,7 @@ impl App {
 		let mut frame_cpu_explosions_time = frame_cpu_status_time;
 		let mut frame_cpu_transparent_time = frame_cpu_status_time;
 		let mut frame_cpu_ui_time = frame_cpu_status_time;
+		let mut frame_cpu_rect_time = frame_cpu_status_time;
 
 		self.init_2d();
 		background::draw(
@@ -522,6 +528,10 @@ impl App {
 
 		unsafe { sys::sceRtcGetCurrentTick(&mut frame_cpu_ui_time); }
 
+		rectangle::draw_all();
+
+		unsafe { sys::sceRtcGetCurrentTick(&mut frame_cpu_rect_time); }
+
 		let mut frame_cpu_draw_time = 0;
 		unsafe { sys::sceRtcGetCurrentTick(&mut frame_cpu_draw_time); }
 
@@ -545,6 +555,7 @@ impl App {
 		self.perf.frame_cpu_explosions_time = frame_cpu_explosions_time;
 		self.perf.frame_cpu_transparent_time = frame_cpu_transparent_time;
 		self.perf.frame_cpu_ui_time = frame_cpu_ui_time;
+		self.perf.frame_cpu_rect_time = frame_cpu_rect_time;
 	}
 
 	fn init_2d(&self) {

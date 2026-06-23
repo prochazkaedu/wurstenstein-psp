@@ -1,4 +1,5 @@
 pub mod algebra;
+pub mod arena;
 pub mod background;
 pub mod font;
 pub mod model;
