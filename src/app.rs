@@ -375,6 +375,9 @@ impl App {
 
 			let deadzone = 0.2;
 
+			let stick_dx = if (-deadzone..=deadzone).contains(&stick_dx) { 0.0 } else { stick_dx };
+			let stick_dy = if (-deadzone..=deadzone).contains(&stick_dy) { 0.0 } else { stick_dy };
+
 			let mut camera_dx = 0.0;
 			let camera_dy = 0.0;
 
@@ -424,10 +427,8 @@ impl App {
 					}
 
 					// if self.params.pov_camera {
-						self.scene.player.move_left = stick_dx < -deadzone;
-						self.scene.player.move_right = stick_dx > deadzone;
-						self.scene.player.move_forward = stick_dy < -deadzone;
-						self.scene.player.move_backward = stick_dy > deadzone;
+						self.scene.player.x_movement = stick_dx;
+						self.scene.player.y_movement = stick_dy;
 						self.scene.player.jump = pad_data.buttons.contains(CtrlButtons::CROSS);
 					// } else {
 					// 	self.scene.camera.key_interact(Directions::Forward, pad_data.buttons.contains(CtrlButtons::TRIANGLE));

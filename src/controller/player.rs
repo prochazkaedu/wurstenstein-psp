@@ -16,10 +16,8 @@ enum PlayerState {
 }
 
 pub struct PlayerController {
-	pub move_forward: bool,
-	pub move_backward: bool,
-	pub move_left: bool,
-	pub move_right: bool,
+	pub x_movement: f32,
+	pub y_movement: f32,
 	pub jump: bool,
 	pub has_contact_with_world: bool,
 	timer: f32,
@@ -56,10 +54,8 @@ pub const MAX_SPEED_TIMER: f32 = 10.0;
 impl PlayerController {
 	pub fn new(spawn: Transform, bounding_box: BoundingBox) -> Self {
 		Self {
-			move_forward: false,
-			move_backward: false,
-			move_left: false,
-			move_right: false,
+			x_movement: 0.0,
+			y_movement: 0.0,
 			jump: false,
 			has_contact_with_world: true,
 			timer: 0.0,
@@ -105,26 +101,26 @@ impl PlayerController {
 
 				let mut xz_force = self.xz_force;
 
-				if self.move_left {
-					xz_force[0] = f32::max(xz_force[0] - accel, -max_speed);
+				if self.x_movement < 0.0 {
+					xz_force[0] = f32::max(xz_force[0] - accel, max_speed * self.x_movement);
 				} else if xz_force[0] < 0.0 {
 					xz_force[0] = f32::min(xz_force[0] + accel, 0.0);
 				}
 
-				if self.move_right {
-					xz_force[0] = f32::min(xz_force[0] + accel, max_speed);
+				if self.x_movement > 0.0 {
+					xz_force[0] = f32::min(xz_force[0] + accel, max_speed * self.x_movement);
 				} else if xz_force[0] > 0.0 {
 					xz_force[0] = f32::max(xz_force[0] - accel, 0.0);
 				}
 
-				if self.move_forward {
-					xz_force[1] = f32::max(xz_force[1] - accel, -max_speed);
+				if self.y_movement < 0.0 {
+					xz_force[1] = f32::max(xz_force[1] - accel, max_speed * self.y_movement);
 				} else if xz_force[1] < 0.0 {
 					xz_force[1] = f32::min(xz_force[1] + accel, 0.0);
 				}
 
-				if self.move_backward {
-					xz_force[1] = f32::min(xz_force[1] + accel, max_speed);
+				if self.y_movement > 0.0 {
+					xz_force[1] = f32::min(xz_force[1] + accel, max_speed * self.y_movement);
 				} else if xz_force[1] > 0.0 {
 					xz_force[1] = f32::max(xz_force[1] - accel, 0.0);
 				}
