@@ -1,9 +1,13 @@
-use psp::sys::TexturePixelFormat;
+use psp::sys::{
+	self,
+	TexturePixelFormat,
+	MipmapLevel
+};
 use psp::vram_alloc::SimpleVramAllocator;
 
 use ab_glyph::{Font as _, FontRef, ScaleFont};
 
-use crate::util::rectangle::{self, Texture};
+use crate::util::rectangle;
 
 struct Glyph {
 	tex_x: u32,
@@ -216,6 +220,11 @@ impl<'a> Font<'a> {
 			return 0;
 		};
 
+		unsafe {
+			sys::sceGuTexMode(TexturePixelFormat::Psm8888, 0, 0, 0);
+			sys::sceGuTexImage(MipmapLevel::None, font.tex_w as i32, font.tex_h as i32, font.tex_w as i32, font.texture.as_ptr() as _);
+		}
+
 		let tex_dimensions = &[
 			c.tex_x as u16,
 			c.tex_y as u16,
@@ -230,12 +239,7 @@ impl<'a> Font<'a> {
 			(y + c.y_off + c.h as i32) as f32,
 		];
 
-		rectangle::colored_and_textured(dimensions, color, tex_dimensions, &Texture {
-			ptr: font.texture.as_ptr() as usize,
-			width: font.tex_w as usize,
-			height: font.tex_h as usize,
-			linear_filter: false
-		});
+		rectangle::colored_and_textured(dimensions, color, tex_dimensions);
 
 		c.w as i32
 	}

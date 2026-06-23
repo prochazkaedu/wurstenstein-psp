@@ -12,10 +12,10 @@ use crate::controller::enemy::EnemyManager;
 use crate::controller::explosion::ExplosionManager;
 use crate::controller::player::{PlayerAction, PlayerController, MAX_AMMO, MAX_HEALTH};
 use crate::controller::powerup::{PowerupManager, PowerupKind};
-use crate::util::{background, get_tick};
+use crate::util::background;
 use crate::util::font::HorizAlign;
 use crate::util::model::Transform;
-use crate::util::rectangle::{self, RectanglePerf};
+use crate::util::rectangle;
 use crate::util::transparent::TransparentRenderer;
 use crate::util::algebra::{Matrix4, Vector2, Vector3};
 
@@ -97,8 +97,7 @@ enum StatsLevel {
 	None,
 	Fps,
 	Overall,
-	DetailedCpuDraw,
-	RectDraw
+	DetailedCpuDraw
 }
 
 struct Perf {
@@ -116,10 +115,8 @@ struct Perf {
 	frame_cpu_explosions_time: u64,
 	frame_cpu_transparent_time: u64,
 	frame_cpu_ui_time: u64,
-	frame_cpu_rect_time: u64,
 	frame_cpu_draw_time: u64,
 	frame_gpu_time: u64,
-	rect_perf: RectanglePerf,
 	fps: f32,
 	accumulated_dt: f32,
 	accumulated_count: usize
@@ -127,7 +124,8 @@ struct Perf {
 
 impl Default for Perf {
 	fn default() -> Self {
-		let start_time = get_tick();
+		let mut start_time = 0;
+		unsafe { sys::sceRtcGetCurrentTick(&mut start_time); }
 
 		Self {
 			start_time,
@@ -144,10 +142,8 @@ impl Default for Perf {
 			frame_cpu_explosions_time: start_time,
 			frame_cpu_transparent_time: start_time,
 			frame_cpu_ui_time: start_time,
-			frame_cpu_rect_time: start_time,
 			frame_cpu_draw_time: start_time,
 			frame_gpu_time: start_time,
-			rect_perf: Default::default(),
 			fps: 0.0,
 			accumulated_dt: 0.0,
 			accumulated_count: 0
@@ -296,47 +292,6 @@ impl App {
 			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 10, 30, HorizAlign::Left, white);
 		}
 
-		if self.params.stats == StatsLevel::RectDraw {
-			let tick = heapless::format!(64; "Num tex:{:6}", self.perf.rect_perf.num_of_textured).unwrap();
-			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 10, 50, HorizAlign::Left, white);
-
-			let tick = heapless::format!(64; "Rect init:{:6}", self.perf.rect_perf.init_time).unwrap();
-			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 30, HorizAlign::Right, white);
-
-			let tick = heapless::format!(64; "Colored init:{:6}", self.perf.rect_perf.colored_init_time).unwrap();
-			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 50, HorizAlign::Right, white);
-
-			let tick = heapless::format!(64; "Colored populate:{:6}", self.perf.rect_perf.colored_populate_time).unwrap();
-			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 70, HorizAlign::Right, white);
-
-			let tick = heapless::format!(64; "Colored draw:{:6}", self.perf.rect_perf.colored_draw_time).unwrap();
-			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 90, HorizAlign::Right, white);
-
-			let tick = heapless::format!(64; "Colored finish:{:6}", self.perf.rect_perf.colored_finish_time).unwrap();
-			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 110, HorizAlign::Right, white);
-
-			let tick = heapless::format!(64; "Textured init:{:6}", self.perf.rect_perf.textured_init_time).unwrap();
-			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 130, HorizAlign::Right, white);
-
-			let tick = heapless::format!(64; "Textured setup:{:6}", self.perf.rect_perf.textured_texture_setup_time).unwrap();
-			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 150, HorizAlign::Right, white);
-
-			let tick = heapless::format!(64; "Textured populate:{:6}", self.perf.rect_perf.textured_populate_time).unwrap();
-			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 170, HorizAlign::Right, white);
-
-			let tick = heapless::format!(64; "Textured draw:{:6}", self.perf.rect_perf.textured_draw_time).unwrap();
-			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 190, HorizAlign::Right, white);
-
-			let tick = heapless::format!(64; "Textured finish:{:6}", self.perf.rect_perf.textured_finish_time).unwrap();
-			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 210, HorizAlign::Right, white);
-
-			let tick = heapless::format!(64; "Rect finish:{:6}", self.perf.rect_perf.finish_time).unwrap();
-			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 230, HorizAlign::Right, white);
-
-			let tick = heapless::format!(64; "CPU draw:{:6}", self.perf.frame_cpu_draw_time - self.perf.frame_cpu_status_time).unwrap();
-			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 250, HorizAlign::Right, white);
-		}
-
 		if self.params.stats == StatsLevel::DetailedCpuDraw {
 			let tick = heapless::format!(64; "Background:{:6}", self.perf.frame_cpu_background_time - self.perf.frame_cpu_status_time).unwrap();
 			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 30, HorizAlign::Right, white);
@@ -365,14 +320,11 @@ impl App {
 			let tick = heapless::format!(64; "UI:{:6}", self.perf.frame_cpu_ui_time - self.perf.frame_cpu_transparent_time).unwrap();
 			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 190, HorizAlign::Right, white);
 
-			let tick = heapless::format!(64; "Rects:{:6}", self.perf.frame_cpu_rect_time - self.perf.frame_cpu_ui_time).unwrap();
+			let tick = heapless::format!(64; "CPU draw:{:6}", self.perf.frame_cpu_draw_time - self.perf.frame_cpu_status_time).unwrap();
 			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 210, HorizAlign::Right, white);
 
-			let tick = heapless::format!(64; "CPU draw:{:6}", self.perf.frame_cpu_draw_time - self.perf.frame_cpu_status_time).unwrap();
-			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 230, HorizAlign::Right, white);
-
 			let tick = heapless::format!(64; "Total time:{:6}", self.perf.frame_gpu_time - self.perf.frame_start_time).unwrap();
-			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 250, HorizAlign::Right, white);
+			self.assets.font.draw_string(&tick, FontSize::SubTitle as u32, 480 - 10, 230, HorizAlign::Right, white);
 		}
 
 		if self.params.stats == StatsLevel::Overall {
@@ -402,12 +354,13 @@ impl App {
 
 			self.perf.fps = fps;
 
-			self.perf.last_update = get_tick();
+			unsafe { sys::sceRtcGetCurrentTick(&mut self.perf.last_update); }
 		}
 	}
 
 	pub fn main_loop(&mut self) {
-		let new_time = get_tick();
+		let mut new_time = 0;
+		unsafe { sys::sceRtcGetCurrentTick(&mut new_time); }
 
 		let dt = (new_time - self.perf.last_time) as f32 / 1000000.0;
 		self.perf.last_time = new_time;
@@ -458,8 +411,7 @@ impl App {
 					StatsLevel::None => StatsLevel::Fps,
 					StatsLevel::Fps => StatsLevel::Overall,
 					StatsLevel::Overall => StatsLevel::DetailedCpuDraw,
-					StatsLevel::DetailedCpuDraw => StatsLevel::RectDraw,
-					StatsLevel::RectDraw => StatsLevel::None
+					StatsLevel::DetailedCpuDraw => StatsLevel::None,
 				}
 			}
 
@@ -500,49 +452,53 @@ impl App {
 
 		self.update_state(dt);
 
-		let frame_cpu_status_time = get_tick();
+		let mut frame_cpu_status_time = 0;
+		unsafe { sys::sceRtcGetCurrentTick(&mut frame_cpu_status_time); }
 
 		self.init_drawing();
 
+		let mut frame_cpu_background_time = frame_cpu_status_time;
+		let mut frame_cpu_init_3d_time = frame_cpu_status_time;
 		let mut frame_cpu_terrain_time = frame_cpu_status_time;
 		let mut frame_cpu_player_time = frame_cpu_status_time;
 		let mut frame_cpu_enemies_time = frame_cpu_status_time;
 		let mut frame_cpu_bullets_time = frame_cpu_status_time;
 		let mut frame_cpu_explosions_time = frame_cpu_status_time;
 		let mut frame_cpu_transparent_time = frame_cpu_status_time;
+		let mut frame_cpu_ui_time = frame_cpu_status_time;
 
 		self.init_2d();
 		background::draw(
 			(self.perf.last_time - self.perf.start_time) as f32 / 1000000.0,
 		);
 
-		let frame_cpu_background_time = get_tick();
+		unsafe { sys::sceRtcGetCurrentTick(&mut frame_cpu_background_time); }
 
 		self.init_3d();
 
-		let frame_cpu_init_3d_time = get_tick();
+		unsafe { sys::sceRtcGetCurrentTick(&mut frame_cpu_init_3d_time); }
 
 		let view_mtx = self.scene.camera.get_view_matrix();
 
 		if self.scene.state != SceneState::Title {
 			self.assets.terrain.draw(&Transform::origin());
 
-			frame_cpu_terrain_time = get_tick();
+			unsafe { sys::sceRtcGetCurrentTick(&mut frame_cpu_terrain_time); }
 
 			self.assets.player.draw(self.scene.player.get_transform());
 			if self.scene.player.get_stats().ammo > 0 {
 				self.assets.sausage_tip.draw(self.scene.player.get_transform());
 			}
 
-			frame_cpu_player_time = get_tick();
+			unsafe { sys::sceRtcGetCurrentTick(&mut frame_cpu_player_time); }
 
 			self.scene.enemies.render(&self.assets);
 
-			frame_cpu_enemies_time = get_tick();
+			unsafe { sys::sceRtcGetCurrentTick(&mut frame_cpu_enemies_time); }
 
 			self.scene.bullets.render(&self.assets);
 
-			frame_cpu_bullets_time = get_tick();
+			unsafe { sys::sceRtcGetCurrentTick(&mut frame_cpu_bullets_time); }
 
 			unsafe {
 				sys::sceGuDisable(GuState::Lighting);
@@ -550,7 +506,7 @@ impl App {
 
 			self.scene.explosions.render();
 
-			frame_cpu_explosions_time = get_tick();
+			unsafe { sys::sceRtcGetCurrentTick(&mut frame_cpu_explosions_time); }
 
 			let mut transparent = TransparentRenderer::new();
 
@@ -558,23 +514,21 @@ impl App {
 
 			transparent.render(view_mtx);
 
-			frame_cpu_transparent_time = get_tick();
+			unsafe { sys::sceRtcGetCurrentTick(&mut frame_cpu_transparent_time); }
 		}
 
 		self.init_2d();
 		self.redraw_ui();
 
-		let frame_cpu_ui_time = get_tick();
+		unsafe { sys::sceRtcGetCurrentTick(&mut frame_cpu_ui_time); }
 
-		self.perf.rect_perf = rectangle::draw_all();
-
-		let frame_cpu_rect_time = get_tick();
-
-		let frame_cpu_draw_time = get_tick();
+		let mut frame_cpu_draw_time = 0;
+		unsafe { sys::sceRtcGetCurrentTick(&mut frame_cpu_draw_time); }
 
 		self.end_drawing();
 
-		let frame_gpu_draw_time = get_tick();
+		let mut frame_gpu_draw_time = 0;
+		unsafe { sys::sceRtcGetCurrentTick(&mut frame_gpu_draw_time); }
 
 		self.vsync();
 
@@ -591,7 +545,6 @@ impl App {
 		self.perf.frame_cpu_explosions_time = frame_cpu_explosions_time;
 		self.perf.frame_cpu_transparent_time = frame_cpu_transparent_time;
 		self.perf.frame_cpu_ui_time = frame_cpu_ui_time;
-		self.perf.frame_cpu_rect_time = frame_cpu_rect_time;
 	}
 
 	fn init_2d(&self) {

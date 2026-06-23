@@ -1,5 +1,4 @@
 pub mod algebra;
-pub mod arena;
 pub mod background;
 pub mod font;
 pub mod model;
@@ -11,11 +10,5 @@ pub fn allocate_display_list<T: Sized>(count: usize) -> &'static mut [T] {
 		let ptr = psp::sys::sceGuGetMemory((count * core::mem::size_of::<T>()) as i32) as *mut T;
 		core::slice::from_raw_parts_mut(ptr, count)
 	}
-}
-
-pub fn get_tick() -> u64 {
-	let mut time = 0;
-	unsafe { psp::sys::sceRtcGetCurrentTick(&mut time); }
-	time
 }
 
