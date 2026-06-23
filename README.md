@@ -8,7 +8,7 @@ https://github.com/user-attachments/assets/840bdd24-7227-4feb-9c5b-325ade2c21c0
 
 ## Installing
 
-Put your PSP into USB Mode, and copy the generated `./target/mipsel-sony-psp/release/EBOOT.PBP` to `/PSP/GAME/wurstenstein/EBOOT.PBP` on the PSP's storage.
+Get yourself the [release](https://github.com/prochazkaedu/wurstenstein-psp/releases/download/1.0/EBOOT.PBP) and put it to `/PSP/GAME/wurstenstein/EBOOT.PBP` on the PSP's storage.
 
 ## Controls
 
@@ -39,3 +39,4 @@ cargo psp --release
 # ...and try running Cargo again.
 ```
 
+Then, copy the generated `./target/mipsel-sony-psp/release/EBOOT.PBP` to `/PSP/GAME/wurstenstein/EBOOT.PBP` on the PSP's storage.
